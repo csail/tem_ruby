@@ -1,0 +1,6 @@
+This is the ruby driver for the Trusted Execution Module prototype produced at MIT. The best feature of the
+ruby driver is the very powerful DSL (domain-specific language) that TEM procedures are compiled from.
+
+Running coverage tests:
+gem install rcov
+rcov -Ilib test/*.rb

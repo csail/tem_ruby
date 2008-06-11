@@ -1,0 +1,9 @@
+#!/usr/bin/env ruby
+
+# benchmarks a TEM
+require 'rubygems'
+require 'tem_ruby'
+
+require 'timings/timings.rb'
+
+TemTimings.all_timings

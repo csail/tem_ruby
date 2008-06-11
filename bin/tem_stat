@@ -1,0 +1,39 @@
+#!/usr/bin/env ruby
+
+# spews information about the TEM
+require 'rubygems'
+require 'tem_ruby'
+require 'pp'
+
+$terminal = Tem::SCard::JCOPRemoteTerminal.new
+unless $terminal.connect
+  $terminal.disconnect
+  $terminal = Tem::SCard::PCSCTerminal.new
+  $terminal.connect
+end
+$javacard = Tem::SCard::JavaCard.new($terminal)
+$tem = Tem::Session.new($javacard)
+
+print "Connected to TEM using #{$terminal.to_s}\n"
+begin
+	fw_ver = $tem.tk_firmware_ver
+	print "TEM firmware version: #{fw_ver[:major]}.#{fw_ver[:minor]}\n"
+rescue
+	print "Could not read TEM firmware version. Is the TEM emitted?\n"
+end
+
+begin
+	b_stat = $tem.stat_buffers
+	print "TEM memory stat:\n"
+	pp b_stat
+rescue
+	print "Could not retrieve TEM memory stat. Is the TEM activated?\n"
+end
+
+begin
+	k_stat = $tem.stat_keys
+	print "TEM crypto stat:\n"
+	pp k_stat
+rescue
+	print "Could not retrieve TEM crypto stat. Is the TEM activated?\n"
+end

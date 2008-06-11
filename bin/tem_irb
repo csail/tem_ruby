@@ -1,0 +1,18 @@
+#!/usr/bin/env ruby
+
+# scaffolds an environment suitable for playing inside an irb session
+require 'rubygems'
+require 'tem_ruby'
+
+require 'irb'
+
+$terminal = Tem::SCard::JCOPRemoteTerminal.new
+unless $terminal.connect
+  $terminal.disconnect
+  $terminal = Tem::SCard::PCSCTerminal.new
+  $terminal.connect
+end
+$javacard = Tem::SCard::JavaCard.new($terminal)
+$tem = Tem::Session.new($javacard)
+
+IRB.start __FILE__

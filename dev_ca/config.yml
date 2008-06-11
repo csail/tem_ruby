@@ -1,0 +1,12 @@
+--- 
+:ca_validity_days: 3652
+:issuer: 
+  CN: Trusted Execution Module Development CA
+  L: Cambridge
+  ST: Massachusetts
+  C: US
+  O: Massachusetts Insitute of Technology
+  OU: Computer Science and Artificial Intelligence Laboratory
+:ecert_validity_days: 730
+:subject: 
+  CN: Trusted Execution Module DevChip

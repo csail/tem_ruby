@@ -3,12 +3,12 @@ gem 'echoe'
 require 'echoe'
 
 Echoe.new('tem_ruby') do |p|
-  p.project = 'smartcard' # rubyforge project
+  p.project = 'tem' # rubyforge project
   
   p.author = 'Victor Costan'
   p.email = 'victor@costan.us'
   p.summary = 'TEM (Trusted Execution Module) driver, written in and for ruby.'
-  p.url = 'http://www.costan.us/smartcard'
+  p.url = 'http://tem.rubyforge.org'
   p.dependencies = ['smartcard >=0.2.2']
   
   p.need_tar_gz = false

@@ -1,7 +1,7 @@
 require 'yaml'
 
 class Tem::SecPack
-  @@serialized_members = [:body, :labels, :ep, :sp, :extra_bytes, :signed_bytes, :encrypted_bytes, :sealed, :lines]
+  @@serialized_members = [:body, :labels, :ep, :sp, :extra_bytes, :signed_bytes, :encrypted_bytes, :bound, :lines]
   
   def self.new_from_array(array)
     arg_hash = { :tem_class => Tem::Session }
@@ -22,13 +22,13 @@ class Tem::SecPack
     self.to_array.to_yaml.to_s
   end
   
-  attr_reader :body, :sealed
+  attr_reader :body, :bound
   attr_reader :lines
   
   def initialize(args)
     @tem_klass = args[:tem_class]
     @@serialized_members.map { |m| self.instance_variable_set('@' + m.to_s, args[m]) }
-    @sealed ||= false
+    @bound ||= false
   end
   
   def label_address(label_name)
@@ -42,7 +42,7 @@ class Tem::SecPack
     return hh
   end
   
-  def seal(public_key, encrypt_from = 0, plaintext_from = 0)
+  def bind(public_key, encrypt_from = 0, plaintext_from = 0)
     encrypt_from = @labels[encrypt_from.to_sym] unless encrypt_from.instance_of? Numeric
     plaintext_from = @labels[plaintext_from.to_sym] unless plaintext_from.instance_of? Numeric
     
@@ -64,7 +64,7 @@ class Tem::SecPack
       end
     }.flatten)]
     
-    @sealed = true
+    @bound = true
   end
   
   def tem_formatted_body()

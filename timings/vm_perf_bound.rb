@@ -135,7 +135,7 @@ class TemTimings
       s.stack      
       s.extra 24
     }
-    secpack.seal @tem.pubek, :done, :stack
+    secpack.bind @tem.pubek, :done, :stack
     print "SECpack has #{secpack.body.length} bytes, runs 1020 instructions and produces 470 bytes\n"
     do_timing { @tem.execute secpack }
   end  

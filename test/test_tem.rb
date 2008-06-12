@@ -444,12 +444,12 @@ class TemTest < Test::Unit::TestCase
     i_test_crypto_pki_ops(pubk_id, privk_id, pubk, privk, keyd[:authz])    
   end
     
-  def test_crypted_secpack(yaml_roundtrip = false)
+  def test_bound_secpack(yaml_roundtrip = false)
     keyd = @tem.tk_gen_key
     pubk = @tem.tk_read_key keyd[:pubk_id], keyd[:authz]
     
     secret = (0...16).map { |i| (99 * i * i + 51 * i + 33) % 256 }
-    sealed_sec = @tem.assemble { |s|
+    bound_sec = @tem.assemble { |s|
         s.ldbc secret.length
         s.outnew
         s.label :mess_place
@@ -462,25 +462,25 @@ class TemTest < Test::Unit::TestCase
         s.extra 8
     }
 
-    sb = sealed_sec.body
+    sb = bound_sec.body
     secret_found = false
     0.upto(sb.length - 1) { |i| if secret == sb[i, secret.length] then secret_found = true; break; end }
-    assert secret_found, 'test_crypted_secpack needs rethinking: the raw sec does not contain the secret'
+    assert secret_found, 'test_bound_secpack needs rethinking: the unbound secpack does not contain the secret'
 
-    sealed_sec.seal pubk, :secret, :plain
+    bound_sec.bind pubk, :secret, :plain
     if yaml_roundtrip
       # same test, except the SECpack is serialized/deserialized
-      yaml_sealed_sec = sealed_sec.to_yaml_str
-      sealed_sec = Tem::SecPack.new_from_yaml_str(yaml_sealed_sec)
+      yaml_bound_sec = bound_sec.to_yaml_str
+      bound_sec = Tem::SecPack.new_from_yaml_str(yaml_bound_sec)
     end    
-    result = @tem.execute sealed_sec, keyd[:privk_id]
+    result = @tem.execute bound_sec, keyd[:privk_id]
     assert_equal secret, result, 'TEM failed to decrypt secpack'
 
-    sb = sealed_sec.body
-    0.upto(sb.length - 1) { |i| assert_not_equal secret, sb[i, secret.length], 'secret found unencrypted in sealed sec' }
+    sb = bound_sec.body
+    0.upto(sb.length - 1) { |i| assert_not_equal secret, sb[i, secret.length], 'secret found unencrypted in bound secpack' }
 
-    sealed_sec.body[sealed_sec.label_address(:mess_place)] += 1
-    assert_raise(RuntimeError, 'secpack validation isn\'t working') { @tem.execute sealed_sec }
+    bound_sec.body[bound_sec.label_address(:mess_place)] += 1
+    assert_raise(RuntimeError, 'secpack validation isn\'t working') { @tem.execute bound_sec }
   end
   
   def test_yaml_secpack
@@ -516,8 +516,8 @@ class TemTest < Test::Unit::TestCase
     
     # re-run the memory test (reasonably large SECpack) to ensure that de-serialized SECpacks are equivalent to the originals
     test_memory_copy_compare(true)
-    # re-run the memory test (reasonably large SECpack) to ensure that serialization works on sealed SECpacks
-    test_crypted_secpack(true)
+    # re-run the memory test (reasonably large SECpack) to ensure that serialization works on bound SECpacks
+    test_bound_secpack(true)
   end
   
   def test_emit

@@ -1,4 +1,4 @@
-v0.9.1. Cleaner names for the pstore data types and opcode arguments. 
+v0.9.1. Cleaner names for the pstore data types and opcode arguments. "Bound" instead of "sealed" SECpack. 
 
 v0.9.0. Updated tests and re-implemented buffer stat-ing for fw 1.9(fire).
 

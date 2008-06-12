@@ -29,19 +29,19 @@ class Tem::SecAssembler
   
 
   # 2 IM -> 1 ST
-  opcode(:psupfxb, 0x48, {:name => :key, :type => :ushort}, {:name => :from, :type => :ushort})
+  opcode(:psupfxb, 0x48, {:name => :addr, :type => :ushort}, {:name => :from, :type => :ushort})
   # 2 ST -> 1 ST
   opcode :psupvb,  0x49
   # 2 IM -> 1 ST
-  opcode(:pswrfxb, 0x4A, {:name => :key, :type => :ushort}, {:name => :from, :type => :ushort})
+  opcode(:pswrfxb, 0x4A, {:name => :addr, :type => :ushort}, {:name => :from, :type => :ushort})
   # 2 ST -> 1 ST
   opcode :pswrvb,  0x4B
   # 2 IM -> 1 ST
-  opcode(:psrdfxb, 0x4C, {:name => :key, :type => :ushort}, {:name => :to, :type => :ushort})
+  opcode(:psrdfxb, 0x4C, {:name => :addr, :type => :ushort}, {:name => :to, :type => :ushort})
   # 2 ST -> 1 ST
   opcode :psrdvb,  0x4D
   # 2 IM -> 1 ST
-  opcode :pshkfxb, 0x4E, {:name => :key, :type => :ushort}
+  opcode :pshkfxb, 0x4E, {:name => :addr, :type => :ushort}
   # 2 ST -> 1 ST
   opcode :pshkvb,  0x4F
   

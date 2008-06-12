@@ -260,8 +260,8 @@ class TemTest < Test::Unit::TestCase
   end
   
   def test_crypto_pstore
-    key1 = (0...(@tem.tem_ps_key_length)).map { |x| (61 * x * x + 62 * x + 10) % 256 }
-    key2 = key1.dup; key2[key2.length - 1] += 1
+    addr1 = (0...(@tem.tem_ps_addr_length)).map { |x| (61 * x * x + 62 * x + 10) % 256 }
+    addr2 = addr1.dup; addr2[addr2.length - 1] += 1
     random_value = (0...(@tem.tem_ps_value_length)).map { |x| (69 * x * x + 62 * x + 10) % 256 }
     
     sec = @tem.assemble { |s|
@@ -269,24 +269,24 @@ class TemTest < Test::Unit::TestCase
       s.outnew
       
       # check that the location is blank
-      s.ldwc :pstore_key
+      s.ldwc :pstore_addr
       s.pshkvb
       s.outw
           
       # write to create the location
-      s.pswrfxb :key => :pstore_key, :from => :s_value
+      s.pswrfxb :addr => :pstore_addr, :from => :s_value
       # check that the location isn't blank anymore
-      s.pshkfxb :key => :pstore_key
+      s.pshkfxb :addr => :pstore_addr
       s.outw
       # re-read (should get what was written)
-      s.ldwc :pstore_key
+      s.ldwc :pstore_addr
       s.ldwc :s_value2
       s.psrdvb
       s.ldwc :s_value2
       s.outvb
       
       # drop the location
-      s.ldwc :pstore_key
+      s.ldwc :pstore_addr
       s.dupn :n => 1
       s.psrm
       # check that the location is blank again
@@ -295,8 +295,8 @@ class TemTest < Test::Unit::TestCase
             
       s.halt
     
-      s.label :pstore_key
-      s.immed :ubyte, key1
+      s.label :pstore_addr
+      s.immed :ubyte, addr1
       s.label :s_value
       s.immed :ubyte, random_value
       s.label :s_value2

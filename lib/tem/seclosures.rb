@@ -2,8 +2,8 @@ require 'yaml'
 
 module Tem::SeClosures
   module MixedMethods
-    def assemble(&proc_block)
-      return Tem::SecAssembler.new(self).assemble(&proc_block)
+    def assemble(&sec_block)
+      return Tem::SecAssembler.new(self).assemble(&sec_block)
     end
   end
   
@@ -36,9 +36,9 @@ module Tem::SeClosures
     tem_error(response) if failure_code(response)    
   end
   
-  def execute(compiled_proc, key_id = 0)
+  def execute(secpack, key_id = 0)
     # load SECpack
-    buffer_id = post_buffer(compiled_proc.tem_formatted_body)
+    buffer_id = post_buffer(secpack.tem_formatted_body)
     response = issue_apdu [0x00, 0x50, to_tem_byte(buffer_id), to_tem_byte(key_id), 0x00].flatten
     release_buffer(buffer_id)
     tem_error(response) if failure_code(response)
@@ -58,7 +58,7 @@ module Tem::SeClosures
         b_stat = stat_buffers() rescue nil
         k_stat = stat_keys() rescue nil
         trace = sec_trace()        
-        backtrace = (trace && trace[:ip]) ? compiled_proc.stack_for_ip(trace[:ip]) : Kernel.caller
+        backtrace = (trace && trace[:ip]) ? secpack.stack_for_ip(trace[:ip]) : Kernel.caller
         sec_exception = Tem::SecExecError.new backtrace, trace, b_stat, k_stat
         break
       when 4 # persistent store fault

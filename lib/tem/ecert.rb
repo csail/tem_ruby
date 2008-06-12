@@ -23,46 +23,46 @@ module Tem::ECert
   
   # emits a TEM
   def emit
-    emit_proc = assemble do |p|
+    emit_sec = assemble do |s|
       # generate EK, compare with (0, 1)
-      p.genkp :type => 0
-      p.ldbc 1
-      p.sub
-      p.jne :to => :not_ok
-      p.ldbc 0
-      p.sub
-      p.jne :to => :not_ok
+      s.genkp :type => 0
+      s.ldbc 1
+      s.sub
+      s.jne :to => :not_ok
+      s.ldbc 0
+      s.sub
+      s.jne :to => :not_ok
       
       # generate and output random authorization for PrivEK
-      p.ldbc 20
-      p.dupn :n => 1
-      p.outnew
-      p.ldwc :privek_auth
-      p.dupn :n => 2
-      p.rnd
-      p.outvb
+      s.ldbc 20
+      s.dupn :n => 1
+      s.outnew
+      s.ldwc :privek_auth
+      s.dupn :n => 2
+      s.rnd
+      s.outvb
       # set authorizations for PrivEK and PubkEK
-      p.ldbc 0
-      p.authk :auth => :privek_auth
-      p.ldbc 1 # PubEK always has its initial authorization be all zeroes
-      p.authk :auth => :pubek_auth
-      p.halt
+      s.ldbc 0
+      s.authk :auth => :privek_auth
+      s.ldbc 1 # PubEK always has its initial authorization be all zeroes
+      s.authk :auth => :pubek_auth
+      s.halt
       
       # emitting didn't go well, return nothing and leave
-      p.label :not_ok
-      p.ldbc 0
-      p.outnew
-      p.halt
+      s.label :not_ok
+      s.ldbc 0
+      s.outnew
+      s.halt
       
-      p.label :privek_auth
-      p.filler :ubyte, 20
-      p.label :pubek_auth
-      p.filler :ubyte, 20
-      p.stack
-      p.extra 8
+      s.label :privek_auth
+      s.filler :ubyte, 20
+      s.label :pubek_auth
+      s.filler :ubyte, 20
+      s.stack
+      s.extra 8
     end
     
-    r = execute emit_proc
+    r = execute emit_sec
     if r.length == 0
       return nil
     else

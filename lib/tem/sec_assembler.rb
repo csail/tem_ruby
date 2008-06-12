@@ -47,8 +47,8 @@ class Tem::SecAssembler
     end
   end
   
-  def assemble(&proc_block)
-    # call the block to build the proc
+  def assemble(&sec_block)
+    # call the block to build the SECpack
     yield self
     
     # link in label addresses

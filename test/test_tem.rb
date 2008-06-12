@@ -21,7 +21,7 @@ class TemTest < Test::Unit::TestCase
   end
   
   def test_alu
-    proc = @tem.assemble { |s|
+    sec = @tem.assemble { |s|
       s.ldbc 10
       s.outnew
       s.ldwc 0x1234
@@ -45,13 +45,13 @@ class TemTest < Test::Unit::TestCase
       s.halt
       s.extra 10
     }
-    result = @tem.execute proc
+    result = @tem.execute sec
     assert_equal [0x68, 0xAC, 0xBB, 0xBC, 0x8C, 0x72, 0x00, 0x55, 0x00, 0x9A],
                   result, 'the ALU isn\'t working well'
   end
   
   def test_memory
-    proc = @tem.assemble { |s|
+    sec = @tem.assemble { |s|
       s.label :clobber
       s.ldbc 32
       s.label :clobber2
@@ -88,13 +88,13 @@ class TemTest < Test::Unit::TestCase
       s.stack
       s.extra 10
     }
-    result = @tem.execute proc
+    result = @tem.execute sec
     assert_equal [0x00, 0x55, 0x55, 0xAA, 0xA5, 0xAA, 0xFF, 0x99, 0x98, 0x66, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66],
                   result, 'the memory unit isn\'t working well'    
   end
   
   def test_output
-    proc = @tem.assemble { |s|
+    sec = @tem.assemble { |s|
       s.ldbc 32
       s.outnew
       s.outfxb :size => 3, :from => :area1
@@ -117,7 +117,7 @@ class TemTest < Test::Unit::TestCase
       s.stack
       s.extra 10
     }
-    result = @tem.execute proc
+    result = @tem.execute sec
     assert_equal [0xFE, 0xCD, 0x9A, 0xAB, 0x95, 0xCE, 0xFD, 0x81, 0xEC, 0xDE, 0xAD, 0xCF, 0x55, 0x99, 0xAA],
                   result, 'the output unit isn\'t working well'    
   end
@@ -232,7 +232,7 @@ class TemTest < Test::Unit::TestCase
     garbage2 = (0...11).map { |x| (69 * x * x + 62 * x + 10) % 256 }
     hash_size = 20
     
-    proc = @tem.assemble { |s|
+    sec = @tem.assemble { |s|
       s.ldwc hash_size * 3
       s.outnew
       s.mdfxb :size => garbage1.length, :from => :garbage1, :to => :hash_area
@@ -254,7 +254,7 @@ class TemTest < Test::Unit::TestCase
       s.extra 10
     }
     
-    result = @tem.execute proc
+    result = @tem.execute sec
     assert_equal [garbage1, garbage2, garbage2].map { |d| @tem.hash_for_tem d}.flatten,
                   result, 'cryptographic hashing isn\'t working well'
   end

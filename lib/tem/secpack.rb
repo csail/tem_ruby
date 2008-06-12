@@ -49,8 +49,8 @@ class Tem::SecPack
     @signed_bytes = encrypt_from
     @encrypted_bytes = plaintext_from - encrypt_from
     
-    proc_sig = @tem_klass.hash_for_tem [tem_header, @body[0...plaintext_from]].flatten
-    crypt = public_key.encrypt [@body[encrypt_from...plaintext_from], proc_sig].flatten
+    secpack_sig = @tem_klass.hash_for_tem [tem_header, @body[0...plaintext_from]].flatten
+    crypt = public_key.encrypt [@body[encrypt_from...plaintext_from], secpack_sig].flatten
     @body = [@body[0...encrypt_from], crypt, @body[plaintext_from..-1]].flatten
       
     label_delta = crypt.length - @encrypted_bytes         

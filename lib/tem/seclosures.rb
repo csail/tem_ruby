@@ -40,7 +40,6 @@ module Tem::SeClosures
     # load SECpack
     buffer_id = post_buffer(secpack.tem_formatted_body)
     response = issue_apdu [0x00, 0x50, to_tem_byte(buffer_id), to_tem_byte(key_id), 0x00].flatten
-    release_buffer(buffer_id)
     tem_error(response) if failure_code(response)
     tem_secpack_error(response) if read_tem_byte(response, 0) != 1
     

@@ -5,12 +5,16 @@ require 'yaml'
 module Tem::CryptoAbi
   include Tem::Abi
   
-  # contains the methods  
+  # The methods that will be mixed into the TEM module
   module MixedMethods
+    # Reads a TEM-encoded big number.
     def read_tem_bignum(buffer, offset, length)
-      return buffer[offset...(offset+length)].inject(0) { |num, digit| num = (num << 8) | digit }
+      return buffer[offset...(offset+length)].inject(0) do |num, digit|
+        num = (num << 8) | digit
+      end
     end
-    
+
+    # Returns the TEM encoding for a big number.
     def to_tem_bignum(n)
       if n.kind_of? OpenSSL::BN
         len = n.num_bytes
@@ -33,19 +37,30 @@ module Tem::CryptoAbi
         return q.reverse
       end
     end
-    
+
     def load_tem_key_material(key, syms, buffer, offset)
-      lengths = (0...syms.length).map { |i| read_tem_short(buffer, offset + i * 2)}
+      lengths = (0...syms.length).map do |i|
+        read_tem_short buffer, offset + i * 2
+      end
       offsets = [offset + syms.length * 2]
-      1.upto(syms.length - 1) { |i| offsets[i] = offsets[i - 1] + lengths[i - 1] }
-      0.upto(syms.length - 1) do |i|
-        key.send((syms[i].to_s + '=').to_sym, read_tem_bignum(buffer, offsets[i], lengths[i]))
-      end    
+      syms.each_index { |i| offsets[i + 1] = offsets[i] + lengths[i] }
+      syms.each_index do |i|
+        key.send((syms[i].to_s + '=').to_sym,
+                 read_tem_bignum(buffer, offsets[i], lengths[i]))
+      end
     end
-        
+    
+    # The length of a TEM symmetric key.
+    def tem_symmetric_key_length
+      16 # 128 bits
+    end
+            
     def read_tem_key(buffer, offset)
       key_type = read_tem_ubyte buffer, offset
-      if key_type == 0xAA || key_type == 0x55
+      case key_type
+      when 0x99
+        key = buffer[offset, tem_symmetric_key_length]                
+      when 0xAA, 0x55
         key = OpenSSL::PKey::RSA.new
         syms = (key_type == 0xAA) ? [:e, :n] : [:p, :q, :dmp1, :dmq1, :iqmp]
         load_tem_key_material key, syms, buffer, offset + 1
@@ -61,10 +76,10 @@ module Tem::CryptoAbi
           key.e = (emp1 < emq1) ? emp1 : emq1
           key.d = key.e.mod_inverse(p1q1)
         end
-        return new_key_from_ssl(key, (key_type == 0xAA)) 
       else
         raise "Invalid key type #{'%02x' % key_type}"
       end
+      return new_key_from_ssl(key, (key_type == 0xAA)) 
     end
     
     def to_tem_key(ssl_key, type)
@@ -78,18 +93,19 @@ module Tem::CryptoAbi
       end
     end
     
+    # Creates a new TEM key wrapper from a SSL key
     def new_key_from_ssl(ssl_key, is_public)
-      AsymmetricKey.new(ssl_key, is_public, :pkcs1)
+      if ssl_key.kind_of? OpenSSL::PKey::RSA
+        AsymmetricKey.new ssl_key, is_public, :pkcs1
+      else
+        SymmetricKey.new ssl_key
+      end
     end
     
+    # Compute a cryptographic hash in the same way that the TEM does.
     def hash_for_tem(data)
-      if data.kind_of? String
-        data_string = data
-      else
-        data_string = data.pack('C*')
-      end
-      digest_string = Digest::SHA1.digest(data_string)
-      return digest_string.unpack('C*')
+      data = data.pack 'C*' unless data.kind_of? String
+      Digest::SHA1.digest(data).unpack 'C*'
     end
   end
   
@@ -104,13 +120,19 @@ module Tem::CryptoAbi
   end
 
   def self.load_ssl(ssl_key)
-    return {:pubkey => AsymmetricKey.new(ssl_key, true, :pkcs1), :privkey => AsymmetricKey.new(ssl_key, false, :pkcs1) }      
+    return { :pubkey => AsymmetricKey.new(ssl_key, true, :pkcs1),
+             :privkey => AsymmetricKey.new(ssl_key, false, :pkcs1) }
   end
   
   def self.generate_ssl_kp
     return Tem::CryptoAbi::AsymmetricKey.generate_ssl_kp
   end
   
+  def self.generate_ssl_sk
+    return Tem::CryptoAbi::SymmetricKey.generate_ssl_sk
+  end
+
+  # Wraps a TEM asymmetric key.
   class AsymmetricKey
     attr_reader :ssl_key
     
@@ -131,9 +153,11 @@ module Tem::CryptoAbi
       self.to_array.to_yaml.to_s
     end       
     
+    # Generate an asymmetric OpenSSL key pair
     def self.generate_ssl_kp
       return OpenSSL::PKey::RSA.generate(2048, 65537)
     end
+        
     def initialize(ssl_key, is_public, padding_type)
       @ssl_key = ssl_key
       @is_public = is_public ? true : false
@@ -188,29 +212,53 @@ module Tem::CryptoAbi
     end
       
     def encrypt(data)
-      encrypt_decrypt(data, @size - @padding_bytes, @is_public ? :public_encrypt : :private_encrypt)      
+      encrypt_decrypt data, @size - @padding_bytes,
+                      @is_public ? :public_encrypt : :private_encrypt      
     end
     
     def decrypt(data)
-      encrypt_decrypt(data, @size, @is_public ? :public_decrypt : :private_decrypt)      
+      encrypt_decrypt data, @size,
+                      @is_public ? :public_decrypt : :private_decrypt      
     end
     
     def sign(data)
-      in_data = if data.kind_of? String then data else data.pack('C*') end
+      data = data.pack 'C*' if data.respond_to? :pack
       # PKCS1-padding is forced in by openssl... sigh!
-      out_data = @ssl_key.sign OpenSSL::Digest::SHA1.new, in_data
-      if data.kind_of? String then out_data else out_data.unpack('C*') end
+      out_data = @ssl_key.sign OpenSSL::Digest::SHA1.new, data
+      data.respond_to?(:pack) ? out_data : out_data.unpack('C*')
     end
     
     def verify(data, signature)
-      in_data = if data.kind_of? String then data else data.pack('C*') end
-      in_signature = if signature.kind_of? String then signature else signature.pack('C*') end
+      data = data.pack 'C*' if data.respond_to? :pack
+      signature = signature.pack 'C*' if signature.respond_to? :pack
       # PKCS1-padding is forced in by openssl... sigh!
-      @ssl_key.verify OpenSSL::Digest::SHA1.new, in_signature, in_data
+      @ssl_key.verify OpenSSL::Digest::SHA1.new, signature, data
     end
     
     def is_public?
       @is_public
     end
-  end  
+  end
+  
+  # Wraps a TEM symmetric key
+  def SymmetricKey
+    def initialize(ssl_key)
+      @key = ssl_key
+      @cipher = OpenSSL::Cipher::Cipher.new 'aes-128-ecb'
+      @cipher.key = @key
+      @cipher.iv = "\0" * 16
+    end
+    
+    def encrypt(data)
+    end
+  
+    def decrypt(data)
+    end
+  
+    def sign(data)
+    end
+  
+    def verify(data)
+    end
+  end
 end

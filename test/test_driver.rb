@@ -73,7 +73,7 @@ class DriverTest < Test::Unit::TestCase
     assert fwver[:major].kind_of?(Numeric) && fwver[:minor].kind_of?(Numeric), 'error in tag-backed firmware version'
   end
 
-  def test_crypto    
+  def test_crypto
     garbage = (1...415).map { |i| (i * i * 217 + i * 661 + 393) % 256 } 
     key_pair = @tem.devchip_generate_key_pair
     pubkey = @tem.devchip_save_key key_pair[:pubkey_id]

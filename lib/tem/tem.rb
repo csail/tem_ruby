@@ -1,5 +1,3 @@
-require 'pp'
-
 class Tem::Session
   include Tem::Abi
   include Tem::Buffers
@@ -12,11 +10,11 @@ class Tem::Session
   include Tem::Tag
   include Tem::Toolkit
   
-  @@aid = [0x19, 0x83, 0x12, 0x29, 0x10, 0xBA, 0xBE]
+  CAPPLET_AID = [0x19, 0x83, 0x12, 0x29, 0x10, 0xBA, 0xBE]
   
   def initialize(javacard)
     @card = javacard
-    @card.select_applet(@@aid)
+    @card.select_applet CAPPLET_AID
   end
   
   def disconnect

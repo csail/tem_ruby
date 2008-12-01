@@ -7,7 +7,7 @@ class Tem::SCard::JavaCard
 
   def select_applet(aid)
     result = @terminal.issue_apdu [0x00, 0xA4, 0x04, 0x00, aid.length, aid].flatten
-    (result == [0x90, 0x00])
+    raise 'Failed to select applet' unless result == [0x90, 0x00]
   end
   
   def issue_apdu(apdu)

@@ -1,4 +1,5 @@
 --- 
+# the development CA is valid for 10 years
 :ca_validity_days: 3652
 :issuer: 
   CN: Trusted Execution Module Development CA
@@ -7,6 +8,7 @@
   C: US
   O: Massachusetts Insitute of Technology
   OU: Computer Science and Artificial Intelligence Laboratory
+# a TEM is valid for two days
 :ecert_validity_days: 730
 :subject: 
   CN: Trusted Execution Module DevChip

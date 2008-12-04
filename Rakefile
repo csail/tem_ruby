@@ -12,8 +12,8 @@ Echoe.new('tem_ruby') do |p|
   p.url = 'http://tem.rubyforge.org'
   p.dependencies = ['smartcard >=0.3.0']
   
-  p.need_tar_gz = true
-  p.need_zip = true
+  p.need_tar_gz = !Platform.windows?
+  p.need_zip = !Platform.windows?
   p.rdoc_pattern = /^(lib|bin|tasks|ext)|^BUILD|^README|^CHANGELOG|^TODO|^LICENSE|^COPYING$/  
 end
 

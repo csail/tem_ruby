@@ -1,4 +1,5 @@
 # gems
+require 'rubygems'
 require 'smartcard'
 
 module Tem

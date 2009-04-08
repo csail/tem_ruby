@@ -1,25 +1,6 @@
-require 'tem_ruby'
-require 'test/unit'
+require 'test/tem_test_case'
 
-class ExceptionsTest < Test::Unit::TestCase
-  def setup
-    @terminal = Tem::SCard::JCOPRemoteTerminal.new
-    unless @terminal.connect
-      @terminal.disconnect
-      @terminal = Tem::SCard::PCSCTerminal.new
-      @terminal.connect
-    end
-    @javacard = Tem::SCard::JavaCard.new(@terminal)
-    @tem = Tem::Session.new(@javacard)
-    
-    @tem.kill
-    @tem.activate
-  end
-  
-  def teardown
-    @terminal.disconnect unless @terminal.nil?
-  end
-  
+class ExceptionsTest < TemTestCase
   def test_trace
     # test the exception handling mechanism
     bad_sec = @tem.assemble { |s|

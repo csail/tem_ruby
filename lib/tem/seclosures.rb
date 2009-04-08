@@ -14,8 +14,7 @@ module Tem::SeClosures
   
   def sec_trace
     #begin      
-      response = issue_apdu [0x00, 0x54, 0x00, 0x00, 0x00].flatten
-      trace = reply_data(response)
+      trace = @transport.applet_apdu! :ins => 0x54
       if trace.length > 2
         case read_tem_short(trace, 0) # trace version
         when 1
@@ -32,22 +31,20 @@ module Tem::SeClosures
   def solve_psfault
     # TODO: better strategy, lol
     next_cell = rand(16)
-    response = issue_apdu [0x00, 0x53, to_tem_ushort(next_cell), 0x00].flatten
-    tem_error(response) if failure_code(response)    
+    @transport.applet_apdu! :ins => 0x53, :p12 => to_tem_ushort(next_cell)
   end
   
   def execute(secpack, key_id = 0)
     # load SECpack
     buffer_id = post_buffer(secpack.tem_formatted_body)
-    response = issue_apdu [0x00, 0x50, to_tem_byte(buffer_id), to_tem_byte(key_id), 0x00].flatten
-    tem_error(response) if failure_code(response)
+    response = @transport.applet_apdu! :ins => 0x50, :p1 => buffer_id,
+                                                     :p2 => key_id
     tem_secpack_error(response) if read_tem_byte(response, 0) != 1
     
     # execute SEC
     sec_exception = nil
     loop do 
-      response = issue_apdu [0x00, 0x52, 0x00, 0x00, 0x00].flatten
-      tem_error(response) if failure_code(response)
+      response = @transport.applet_apdu! :ins => 0x52
       sec_status = read_tem_byte(response, 0)
       case sec_status
       when 2 # success
@@ -67,12 +64,11 @@ module Tem::SeClosures
       end
     end
   
-    # TODO: handle response to figure out if we need to do page faults or something
-    
     # unbind SEC
-    response = issue_apdu [0x00, 0x51, 0x00, 0x00, 0x00].flatten
+    response = @transport.applet_apdu! :ins => 0x51
     raise sec_exception if sec_exception
-    buffer_id, buffer_length = read_tem_byte(response, 0), read_tem_short(response, 1)
+    buffer_id = read_tem_byte(response, 0)
+    buffer_length = read_tem_short(response, 1)
     data_buffer = read_buffer buffer_id
     release_buffer buffer_id
     

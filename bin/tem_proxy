@@ -1,0 +1,65 @@
+#!/usr/bin/env ruby
+
+# TEM transport-level proxy.
+# Serves a TCP connection
+
+require 'logger'
+
+require 'rubygems'
+require 'tem_ruby'
+
+# JCOP remote serving logic implementing a proxy to another transport. 
+class ServingLogic
+  include Tem::Transport::JcopRemoteServingStubs
+  def initialize(serving_transport, logging = false)
+    @serving = serving_transport
+    @logger = Logger.new STDERR
+    @logger.level = logging ? Logger::DEBUG : Logger::FATAL
+    @connected = true
+  end
+  def connection_start
+    @logger.info "Connection start"
+    unless @connected
+    	@serving.connect 
+    	@connected = true
+    end
+  end
+  def connection_end
+    @logger.info "Connection end"
+    @serving.disconnect if @connected
+    @connected = false
+  end
+  def exchange_apdu(apdu)
+    @logger.info "APDU request: #{apdu.map { |n| '%02x' % n }.join(' ')}"
+    response = @serving.exchange_apdu apdu
+    @logger.info "APDU response: #{response.map { |n| '%02x' % n }.join(' ')}"
+    response
+  end
+end
+
+# Indefinitely runs a JCOP remove serving loop that proxies to another TEM
+# transport.
+#
+# The TEM transport is automatically configured based on environment information
+# and defaults. 
+#
+def serve(options)
+  @logger = Logger.new STDERR
+  @logger.level = options[:logging] ? Logger::DEBUG : Logger::FATAL
+
+  serving_transport = Tem::Transport.auto_transport
+  @logger.info "Proxying to #{serving_transport.inspect}\n"
+  @logger.info "Serving with #{options.inspect}\n"
+  serving_logic = ServingLogic.new serving_transport, options[:logging]
+  Tem::Transport::JcopRemoteServer.new(options, serving_logic).run
+end
+
+# Parses the commmand-line arguments into an options hash suitable for #serve.
+def parse_args
+  { :ip => ARGV[1] || '0.0.0.0', :port => (ARGV[0] || '9000').to_i,
+    :logging => !(ENV['DEBUG'] &&
+                  ['0', 'no', 'false'].include?(ENV['DEBUG'].downcase)) }
+end
+
+options = parse_args
+serve options

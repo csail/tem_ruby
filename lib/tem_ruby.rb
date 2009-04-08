@@ -2,17 +2,24 @@
 require 'rubygems'
 require 'smartcard'
 
+# :nodoc:
 module Tem
 end
 
-module Tem::SCard
+# :nodoc:
+module Tem::Transport
 end
 
-require 'scard/pcsc_terminal.rb'
-require 'scard/jcop_remote_terminal.rb'
-require 'scard/java_card.rb'
+require 'tem/transport/transport.rb'
+require 'tem/transport/java_card_mixin.rb'
+require 'tem/transport/pcsc_transport.rb'
+require 'tem/transport/jcop_remote_protocol.rb'
+require 'tem/transport/jcop_remote_transport.rb'
+require 'tem/transport/jcop_remote_server.rb'
+require 'tem/transport/auto_configurator.rb'
 
 require 'tem/abi.rb'
+require 'tem/auto_conf.rb'
 require 'tem/buffers.rb'
 require 'tem/ca.rb'
 require 'tem/crypto_abi.rb'

@@ -1,8 +1,8 @@
 module Tem::Lifecycle
   def activate
-    issue_apdu([0x00, 0x10, 0x00, 0x00, 0x00])[0] == 0x90 
+    @transport.applet_apdu(:ins => 0x10)[:status] == 0x9000
   end
   def kill
-    issue_apdu([0x00, 0x11, 0x00, 0x00, 0x00])[0] == 0x90 
+    @transport.applet_apdu(:ins => 0x11)[:status] == 0x9000
   end
 end

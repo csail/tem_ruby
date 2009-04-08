@@ -26,23 +26,14 @@ require 'openssl'
 
 class CertTest < Test::Unit::TestCase
   def setup
-    @terminal = Tem::SCard::JCOPRemoteTerminal.new
-    unless @terminal.connect
-      @terminal.disconnect
-      @terminal = Tem::SCard::PCSCTerminal.new
-      @terminal.connect
-    end
-    @javacard = Tem::SCard::JavaCard.new(@terminal)
-    @tem = Tem::Session.new(@javacard)
+    @tem = Tem.auto_tem
     
     @tem.kill
     @tem.activate
-    
-    
   end
   
   def teardown
-    @terminal.disconnect unless @terminal.nil?
+    @tem.disconnect unless @tem.nil?
   end
   
   def test_cert
@@ -75,7 +66,5 @@ class CertTest < Test::Unit::TestCase
     #The only way to set the signature is to sign the certificate, and only the issuer (manufacturer) can do this.
     #This means that the manufacturer has to be contacted every time the user wants to verify the TEM's certificate,
     #and this may not be practical.
-    
-    
   end  
 end

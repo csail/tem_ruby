@@ -6,13 +6,6 @@ require 'tem_ruby'
 
 require 'irb'
 
-$terminal = Tem::SCard::JCOPRemoteTerminal.new
-unless $terminal.connect
-  $terminal.disconnect
-  $terminal = Tem::SCard::PCSCTerminal.new
-  $terminal.connect
-end
-$javacard = Tem::SCard::JavaCard.new($terminal)
-$tem = Tem::Session.new($javacard)
+Tem.auto_conf
 
 IRB.start __FILE__

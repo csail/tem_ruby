@@ -10,14 +10,7 @@ require 'timings/vm_perf_bound.rb'
 
 class TemTimings
   def setup
-    @terminal = Tem::SCard::JCOPRemoteTerminal.new
-    unless @terminal.connect
-      @terminal.disconnect
-      @terminal = Tem::SCard::PCSCTerminal.new
-      @terminal.connect
-    end
-    @javacard = Tem::SCard::JavaCard.new(@terminal)
-    @tem = Tem::Session.new(@javacard)
+    @tem = Tem.auto_tem
     
     @tem.kill
     @tem.activate
@@ -26,7 +19,7 @@ class TemTimings
   
   def teardown
     @tem.kill
-    @terminal.disconnect unless @terminal.nil?
+    @tem.disconnect if @tem
   end
   
   def do_timing

@@ -12,31 +12,17 @@ class Tem::Session
   
   CAPPLET_AID = [0x19, 0x83, 0x12, 0x29, 0x10, 0xBA, 0xBE]
   
-  def initialize(javacard)
-    @card = javacard
-    @card.select_applet CAPPLET_AID
+  attr_reader :transport
+  
+  def initialize(transport)
+    @transport = transport
+    @transport.select_applet CAPPLET_AID
   end
   
   def disconnect
-    # TODO: deselect applet, reset card
-    @card = nil
-  end
-  
-  def issue_apdu(apdu)
-    @card.issue_apdu apdu
-  end
-  
-  def failure_code(reply_apdu)
-    @card.failure_code reply_apdu
-  end
-  
-  def reply_data(reply_apdu)
-    @card.reply_data reply_apdu
-  end
-  
-  def tem_error(response)
-    fcode = failure_code response
-    raise "TEM returned error 0x#{'%04x' % fcode} while processing the request"
+    return unless @transport
+    @transport.disconnect
+    @transport = nil
   end
   
   def tem_secpack_error(response)

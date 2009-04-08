@@ -1,25 +1,6 @@
-require 'tem_ruby'
-require 'test/unit'
+require 'test/tem_test_case'
 
-class DriverTest < Test::Unit::TestCase
-  def setup
-    @terminal = Tem::SCard::JCOPRemoteTerminal.new
-    unless @terminal.connect
-      @terminal.disconnect
-      @terminal = Tem::SCard::PCSCTerminal.new
-      @terminal.connect
-    end
-    @javacard = Tem::SCard::JavaCard.new(@terminal)
-    @tem = Tem::Session.new(@javacard)
-    
-    @tem.kill
-    @tem.activate
-  end
-  
-  def teardown
-    @terminal.disconnect unless @terminal.nil?
-  end
-  
+class DriverTest < TemTestCase
   def test_buffers_io
     garbage = (1...569).map { |i| (i * i * 217 + i * 661 + 393) % 256 }
     

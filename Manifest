@@ -9,11 +9,12 @@ dev_ca/ca_cert.pem
 dev_ca/ca_key.pem
 dev_ca/config.yml
 lib/tem/_cert.rb
-lib/tem/abi.rb
 lib/tem/auto_conf.rb
 lib/tem/buffers.rb
+lib/tem/builders/abi.rb
 lib/tem/ca.rb
 lib/tem/crypto_abi.rb
+lib/tem/definitions/abi.rb
 lib/tem/ecert.rb
 lib/tem/hive.rb
 lib/tem/keys.rb
@@ -39,6 +40,7 @@ Manifest
 Rakefile
 README
 test/_test_cert.rb
+test/builders/test_abi_builder.rb
 test/tem_test_case.rb
 test/test_driver.rb
 test/test_exceptions.rb

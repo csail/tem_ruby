@@ -18,7 +18,10 @@ require 'tem/transport/jcop_remote_transport.rb'
 require 'tem/transport/jcop_remote_server.rb'
 require 'tem/transport/auto_configurator.rb'
 
-require 'tem/abi.rb'
+require 'tem/builders/abi.rb'
+
+require 'tem/definitions/abi.rb'
+
 require 'tem/auto_conf.rb'
 require 'tem/buffers.rb'
 require 'tem/ca.rb'

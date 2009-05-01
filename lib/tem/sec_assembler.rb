@@ -56,7 +56,7 @@ class Tem::SecAssembler
       if @body[i].kind_of? Hash
         raise "label #{@body[i][:label]} undefined" if (!@body[i][:label].nil? and @labels[@body[i][:label]].nil?)
         addr = @body[i][:label].nil? ? @body[i][:address] : @labels[@body[i][:label]]
-        q = @body[i][:relative] ? (@tem_klass.send "to_tem_#{@body[i][:type]}_reladdr".to_sym, addr - i - @body[i][:relative]) :
+        q = @body[i][:relative] ? (@tem_klass.send "signed_to_tem_#{@body[i][:type]}".to_sym, addr - i - @body[i][:relative]) :
                                 (@tem_klass.send "to_tem_#{@body[i][:type]}".to_sym, addr) 
         @body[i, q.length] = *q
       end

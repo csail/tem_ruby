@@ -8,4 +8,9 @@ module Tem::Abi
     abi.fixed_width_type :tem_ps_value, 20, :signed => false,
                          :big_endian => true
   end
+
+  # For convenience, include the Abi methods in Tem::Session's namespace.
+  def self.included(klass)
+    klass.extend Tem::Abi
+  end
 end  # module Tem::Abi

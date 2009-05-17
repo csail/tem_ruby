@@ -27,7 +27,7 @@ class Tem::SecPack
   
   def initialize(args)
     @tem_klass = args[:tem_class]
-    @@serialized_members.map { |m| self.instance_variable_set('@' + m.to_s, args[m]) }
+    @@serialized_members.map { |m| self.instance_variable_set "@#{m}", args[m] }
     @bound ||= false
   end
   
@@ -37,7 +37,8 @@ class Tem::SecPack
   
   def tem_header
     # TODO: use 0x0100 (no tracing) depending on options
-    hh = [0x0101, @signed_bytes, @encrypted_bytes, @extra_bytes, @sp, @ep].map { |n| @tem_klass.to_tem_ushort n }.flatten
+    hh = [0x0101, @signed_bytes || 0, @encrypted_bytes || 0, @extra_bytes, @sp,
+          @ep].map { |n| @tem_klass.to_tem_ushort n }.flatten
     hh += Array.new((@tem_klass.hash_for_tem [0]).length - hh.length, 0)
     return hh
   end

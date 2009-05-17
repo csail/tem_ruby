@@ -7,37 +7,6 @@ module Tem::CryptoAbi
   
   # The methods that will be mixed into the TEM module
   module MixedMethods
-    # Reads a TEM-encoded big number.
-    def read_tem_bignum(buffer, offset, length)
-      return buffer[offset...(offset+length)].inject(0) do |num, digit|
-        num = (num << 8) | digit
-      end
-    end
-
-    # Returns the TEM encoding for a big number.
-    def to_tem_bignum(n)
-      if n.kind_of? OpenSSL::BN
-        len = n.num_bytes
-        bytes = (0...len).map do |i|
-          bit_i = (len - i) * 8
-          v = 0
-          1.upto(8) do
-            bit_i -= 1
-            v = (v << 1) | (n.bit_set?(bit_i) ? 1 : 0)
-          end
-          v
-        end
-        return bytes
-      else
-        q = 0
-        until n == 0 do
-          q << (n & 0xFF)
-          n >>= 8
-        end
-        return q.reverse
-      end
-    end
-
     def load_tem_key_material(key, syms, buffer, offset)
       lengths = (0...syms.length).map do |i|
         read_tem_short buffer, offset + i * 2
@@ -62,19 +31,21 @@ module Tem::CryptoAbi
         key = buffer[offset, tem_symmetric_key_length]                
       when 0xAA, 0x55
         key = OpenSSL::PKey::RSA.new
-        syms = (key_type == 0xAA) ? [:e, :n] : [:p, :q, :dmp1, :dmq1, :iqmp]
-        load_tem_key_material key, syms, buffer, offset + 1
+        numbers = (key_type == 0xAA) ?
+            read_tem_pubkey_numbers(buffer, offset + 1) :
+            read_tem_privkey_numbers(buffer, offset + 1)
+        numbers.each { |k, v| key.send :"#{k}=", v }
         if key_type == 0x55
           # a bit of math to rebuild the public key
           key.n = key.p * key.q
           p1, q1 = key.p - 1, key.q - 1          
-          p1q1 = p1 * q1          
-          # HACK: I haven't figured out how to restore d from dmp1 and dmq1, so
-          # I'm betting on the fact that e must be a small prime
-          emp1 = key.dmp1.mod_inverse(p1)
-          emq1 = key.dmq1.mod_inverse(q1)
+          p1q1 = p1 * q1
+          # HACK(costan): I haven't figured out how to restore d from dmp1 and
+          # dmq1, so I'm betting on the fact that e must be a small prime.
+          emp1 = key.dmp1.mod_inverse p1
+          emq1 = key.dmq1.mod_inverse q1
           key.e = (emp1 < emq1) ? emp1 : emq1
-          key.d = key.e.mod_inverse(p1q1)
+          key.d = key.e.mod_inverse p1q1
         end
       else
         raise "Invalid key type #{'%02x' % key_type}"
@@ -83,11 +54,13 @@ module Tem::CryptoAbi
     end
     
     def to_tem_key(ssl_key, type)
-      if [:private, :public].include? type
-        # asymmetric key
-        syms = (type == :public) ? [:e, :n] : [:p, :q, :dmp1, :dmq1, :iqmp]
-        numbers = syms.map { |s| to_tem_bignum ssl_key.send(s) }
-        return [(type == :public) ? 0xAA : 0x55, numbers.map { |n| to_tem_ushort(n.length) }, numbers].flatten
+      case type
+      when :public
+        to_tem_pubkey_numbers(:n => ssl_key.n, :e => ssl_key.e).unshift 0xAA          
+      when :private
+        to_tem_privkey_numbers(:dmp1 => ssl_key.dmp1, :dmq1 => ssl_key.dmq1,              
+                               :iqmp => ssl_key.iqmp, :p => ssl_key.p,
+                               :q => ssl_key.q).unshift 0x55          
       else
         # symmetric key
       end

@@ -6,19 +6,7 @@ module Tem::CryptoAbi
   include Tem::Abi
   
   # The methods that will be mixed into the TEM module
-  module MixedMethods
-    def load_tem_key_material(key, syms, buffer, offset)
-      lengths = (0...syms.length).map do |i|
-        read_tem_short buffer, offset + i * 2
-      end
-      offsets = [offset + syms.length * 2]
-      syms.each_index { |i| offsets[i + 1] = offsets[i] + lengths[i] }
-      syms.each_index do |i|
-        key.send((syms[i].to_s + '=').to_sym,
-                 read_tem_bignum(buffer, offsets[i], lengths[i]))
-      end
-    end
-    
+  module MixedMethods    
     # The length of a TEM symmetric key.
     def tem_symmetric_key_length
       16 # 128 bits
@@ -28,25 +16,11 @@ module Tem::CryptoAbi
       key_type = read_tem_ubyte buffer, offset
       case key_type
       when 0x99
-        key = buffer[offset, tem_symmetric_key_length]                
-      when 0xAA, 0x55
-        key = OpenSSL::PKey::RSA.new
-        numbers = (key_type == 0xAA) ?
-            read_tem_pubkey_numbers(buffer, offset + 1) :
-            read_tem_privkey_numbers(buffer, offset + 1)
-        numbers.each { |k, v| key.send :"#{k}=", v }
-        if key_type == 0x55
-          # a bit of math to rebuild the public key
-          key.n = key.p * key.q
-          p1, q1 = key.p - 1, key.q - 1          
-          p1q1 = p1 * q1
-          # HACK(costan): I haven't figured out how to restore d from dmp1 and
-          # dmq1, so I'm betting on the fact that e must be a small prime.
-          emp1 = key.dmp1.mod_inverse p1
-          emq1 = key.dmq1.mod_inverse q1
-          key.e = (emp1 < emq1) ? emp1 : emq1
-          key.d = key.e.mod_inverse p1q1
-        end
+        key = buffer[offset + 1, tem_symmetric_key_length]                
+      when 0xAA
+        key = read_public_tem_rsa buffer, offset + 1
+      when 0x55
+        key = read_private_tem_rsa buffer, offset + 1
       else
         raise "Invalid key type #{'%02x' % key_type}"
       end
@@ -56,11 +30,9 @@ module Tem::CryptoAbi
     def to_tem_key(ssl_key, type)
       case type
       when :public
-        to_tem_pubkey_numbers(:n => ssl_key.n, :e => ssl_key.e).unshift 0xAA          
+        to_public_tem_rsa(ssl_key).unshift 0xAA
       when :private
-        to_tem_privkey_numbers(:dmp1 => ssl_key.dmp1, :dmq1 => ssl_key.dmq1,              
-                               :iqmp => ssl_key.iqmp, :p => ssl_key.p,
-                               :q => ssl_key.q).unshift 0x55          
+        to_private_tem_rsa(ssl_key).unshift 0x55
       else
         # symmetric key
       end

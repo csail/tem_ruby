@@ -1,3 +1,6 @@
+require 'openssl'
+
+
 # :nodoc: namespace
 module Tem::Builders  
 
@@ -6,7 +9,7 @@ class Abi
   # Creates a builder targeting a module / class.
   #
   # The given parameter should be a class or module
-  def self.define_abi(class_or_module) # :yields: abi
+  def self.define_abi(class_or_module)  # :yields: abi
     yield new(class_or_module)
   end
   
@@ -18,24 +21,25 @@ class Abi
   #   big_endian:: if true, bytes are sent over the wire in big-endian order
   #
   # The following methods are defined for a type named 'name':
-  #   * read_name(array) -> number
+  #   * read_name(array, offset) -> number
   #   * to_name(number) -> array
   #   * signed_to_name(number) -> array  # takes signed inputs on unsigned types
+  #   * name_length -> number  # the number of bytes in the number type
   def fixed_length_number(name, bytes, options = {})
+    impl = Tem::Builders::Abi::Impl
     signed = options.fetch :signed, true
     big_endian = options.fetch :big_endian, true    
     
     defines = Proc.new do 
       define_method :"read_#{name}" do |array, offset|
-        Tem::Builders::Abi::Impl.number_from_array array, offset, bytes, signed,
-                                                   big_endian
+        impl.number_from_array array, offset, bytes, signed, big_endian
       end
       define_method :"to_#{name}" do |n|
-        Tem::Builders::Abi::Impl.check_number_range n, bytes, signed
-        Tem::Builders::Abi::Impl.number_to_array n, bytes, signed, big_endian
+        impl.check_number_range n, bytes, signed
+        impl.number_to_array n, bytes, signed, big_endian
       end
       define_method :"signed_to_#{name}" do |n|
-        Tem::Builders::Abi::Impl.number_to_array n, bytes, signed, big_endian
+        impl.number_to_array n, bytes, signed, big_endian
       end
       define_method(:"#{name}_length") { bytes }
     end
@@ -55,9 +59,10 @@ class Abi
   #   big_endian:: if true, bytes are sent over the wire in big-endian order
   #
   # The following methods are defined for a type named 'name':
-  #   * read_name(array) -> number
+  #   * read_name(array, offset) -> number
   #   * to_name(number) -> array
   def variable_length_number(name, length_type, options = {})
+    impl = Tem::Builders::Abi::Impl
     signed = options.fetch :signed, true
     big_endian = options.fetch :big_endian, true
     length_bytes = @target.send :"#{length_type}_length"
@@ -67,12 +72,11 @@ class Abi
     defines = Proc.new do 
       define_method :"read_#{name}" do |array, offset|
         length = self.send read_length_msg, array, offset
-        Tem::Builders::Abi::Impl.number_from_array array, offset + length_bytes,
-                                                   length, signed, big_endian
+        impl.number_from_array array, offset + length_bytes, length, signed,
+                               big_endian
       end
       define_method :"to_#{name}" do |n|
-        number_data = Tem::Builders::Abi::Impl.number_to_array n, nil, signed,
-                                                               big_endian
+        number_data = impl.number_to_array n, nil, signed, big_endian
         length_data = self.send write_length_msg, number_data.length
         length_data + number_data
       end
@@ -94,7 +98,7 @@ class Abi
   # fixed-length type, whose name is given as the length_type parameter.
   # 
   # The numbers are de-serialized into a hash, where each number is associated
-  # with a key. The sub_names argument specifies the names of the keys, in the
+  # with a key. The components argument specifies the names of the keys, in the
   # order that the numbers are serialized in.
   # 
   # The |options| hash supports the following keys:
@@ -103,9 +107,13 @@ class Abi
   #   big_endian:: if true, bytes are sent over the wire in big-endian order
   #
   # The following methods are defined for a type named 'name':
-  #   * read_name(array) -> hash
-  #   * to_name(hash) -> array  
-  def packed_variable_length_numbers(name, length_type, sub_names, options = {})
+  #   * read_name(array, offset) -> hash
+  #   * to_name(hash) -> array
+  #   * name_components -> array
+  def packed_variable_length_numbers(name, length_type, components,
+                                     options = {})
+    impl = Tem::Builders::Abi::Impl
+    sub_names = components.freeze
     signed = options.fetch :signed, true
     big_endian = options.fetch :big_endian, true
     length_bytes = @target.send :"#{length_type}_length"
@@ -119,17 +127,15 @@ class Abi
         sub_names.each_with_index do |sub_name, i|
           length = self.send read_length_msg, array, offset + i * length_bytes
           response[sub_name] =
-              Tem::Builders::Abi::Impl.number_from_array array, data_offset,
-                                                         length, signed,
-                                                         big_endian
+              impl.number_from_array array, data_offset, length, signed,
+                                     big_endian
           data_offset += length
         end
         response
       end
       define_method :"to_#{name}" do |numbers|
         number_data = sub_names.map do |sub_name|
-          Tem::Builders::Abi::Impl.number_to_array numbers[sub_name], nil,
-                                                   signed, big_endian
+          impl.number_to_array numbers[sub_name], nil, signed, big_endian
         end
         length_data = number_data.map do |number|
           self.send write_length_msg, number.length
@@ -138,12 +144,81 @@ class Abi
         lengths = length_data.inject([]) { |acc, i| acc += i }
         number_data.inject(lengths) { |acc, i| acc += i }
       end
-      define_method(:"#{name}_length") { bytes }
+      define_method(:"#{name}_components") { sub_names }
     end
     
     @target.class_eval &defines
     (class << @target; self; end).module_eval &defines    
   end
+  
+  # Defines the methods for handling a fixed-length string type in an ABI.
+  # 
+  # The |options| hash supports the following keys:
+  #   signed:: if false, the value type cannot hold negative numbers;
+  #            signed values are stored using 2s-complement; defaults to true
+  #   big_endian:: if true, bytes are sent over the wire in big-endian order
+  #
+  # The following methods are defined for a type named 'name':
+  #   * read_name(array, offset) -> string
+  #   * to_name(string or array) -> array
+  #   * name_length -> number  # the number of bytes in the string type
+  def fixed_length_string(name, bytes, options = {})
+    impl = Tem::Builders::Abi::Impl
+    signed = options.fetch :signed, true
+    big_endian = options.fetch :big_endian, true    
+    
+    defines = Proc.new do 
+      define_method :"read_#{name}" do |array, offset|      
+        impl.string_from_array array, offset, bytes
+      end
+      define_method :"to_#{name}" do |n|
+        impl.string_to_array n, bytes
+      end
+      define_method(:"#{name}_length") { bytes }
+    end
+    
+    @target.class_eval &defines
+    (class << @target; self; end).module_eval &defines
+  end
+  
+  # Defines methods for handling a complex ABI structure wrapped into an object.
+  #
+  # Objects are assumed to be of the object_class type. The objects are
+  # serialized using the abi_type primitives, which should serialize to and from 
+  # a hash, like an ABI type generated by packed_variable_length_numbers.
+  #  
+  # The following methods are defined for a type named 'name':
+  #   * read_name(array, offset) -> number
+  #   * to_name(key) -> array
+  #
+  # The following hooks (Procs in the hooks argument) are supported:
+  #   read:: called after the object is de-serialized using the lower-level ABI;
+  #          if the hook is present, its value is returned from the method
+  #   to:: if true, bytes are sent over the wire in big-endian order
+  def object_wrapper(name, object_class, abi_type, hooks = {})
+    read_object_msg = :"read_#{abi_type}"
+    to_object_msg = :"to_#{abi_type}"
+    components = @target.send :"#{abi_type}_components"
+    
+    defines = Proc.new do 
+      define_method :"read_#{name}" do |array, offset|
+        key = object_class.new
+        properties = self.send read_object_msg, array, offset
+        properties.each { |k, v| key.send :"#{k}=", v }
+        key = hooks[:read].call key if hooks[:read]
+        key
+      end
+      define_method :"to_#{name}" do |key|
+        key = hooks[:to].call key if hooks[:to]
+        numbers =
+            Hash[*(components.map { |c| [c, key.send(c.to_sym) ]}.flatten)]
+        self.send to_object_msg, numbers
+      end
+    end
+    
+    @target.class_eval &defines
+    (class << @target; self; end).module_eval &defines
+  end  
   
   # The module / class impacted by the builder.
   attr_reader :target
@@ -235,6 +310,37 @@ module Abi::Impl
     
     exception_string = "Number #{number} exceeds #{min_value}-#{max_value}"
     raise exception_string if number < min_value or number > max_value
+  end
+  
+  # Reads a variable-length string serialized to an array.
+  #
+  # The source is indicated by the array and offset parameters. The number's
+  # length is given in bytes.
+  def self.string_from_array(array, offset, length)
+    array[offset, length].pack('C*')
+  end
+  
+  # Writes a fixed or variable-length string to an array.
+  #
+  # The source is indicated by the array and offset parameters. The number's
+  # length is given in bytes.
+  def self.string_to_array(array_or_string, length)
+    if array_or_string.respond_to? :to_str
+      # array_or_string is String-like
+      string = array_or_string.to_str
+      array = string.unpack('C*')
+    else
+      # array_or_string is Array-like
+      array = array_or_string
+    end
+    
+    if length and array.length > length
+      raise "Cannot fit #{array_or_string.inspect} into a #{length}-byte string"       
+    end
+    # Pad the array with zeros up to the fixed length.
+    length ||= 0
+    array << 0 while array.length < length
+    array
   end
 end
 

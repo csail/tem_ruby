@@ -19,6 +19,7 @@ require 'tem/transport/jcop_remote_server.rb'
 require 'tem/transport/auto_configurator.rb'
 
 require 'tem/builders/abi.rb'
+require 'tem/builders/crypto.rb'
 
 require 'tem/definitions/abi.rb'
 

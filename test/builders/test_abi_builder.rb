@@ -4,6 +4,11 @@ require 'test/unit'
 require 'tem_ruby'
 
 class AbiBuilderTest < Test::Unit::TestCase
+  class Wrapped
+    attr_accessor :p, :q, :n
+    attr_accessor :d  # Derived value
+  end
+  
   module Abi
     Tem::Builders::Abi.define_abi self do |abi|
       abi.fixed_length_number :byte, 1, :signed => true
@@ -26,6 +31,13 @@ class AbiBuilderTest < Test::Unit::TestCase
                                          [:x, :y, :z, :a],
                                          :signed => false,
                                          :big_endian => true
+      abi.fixed_length_string :mac_id, 6
+      abi.object_wrapper :wrapped_raw, Wrapped, :packed
+      abi.object_wrapper :wrapped, Wrapped, :packed,
+          :to => lambda { |o| w = Wrapped.new
+                              w.p, w.q, w.n = o.p, o.q, o.n * 100
+                              w },
+          :read => lambda { |o| w = Wrapped.new; w.d = o.p * o.q; w }
     end
   end
   
@@ -33,7 +45,7 @@ class AbiBuilderTest < Test::Unit::TestCase
     @garbage = [0xFD, 0xFC, 0xFD, 0xFC, 0xFD] * 5    
   end
   
-  def test_fixed_and_variable_length_encoding
+  def test_fixed_and_variable_length_number_encoding
     [
      [:byte, 0, [0]], [:byte, 127, [127]],
      [:byte, -1, [255]], [:byte, -127, [129]], [:byte, -128, [128]],
@@ -112,14 +124,78 @@ class AbiBuilderTest < Test::Unit::TestCase
     assert_equal net_packed, Abi.read_net_packed(@garbage + gold_net_packed,
                                                  @garbage.length),
                  'net_packed'
+    components = Abi.net_packed_components
+    assert_equal [:x, :y, :z, :a], components,
+                 'incorrect result from _components'
+    assert_raise TypeError, '_components result is mutable' do    
+      components[0] = :w
+    end
+  end
+  
+  def test_fixed_length_string_encoding
+    [
+      [:mac_id, "abcdef", nil, [?a, ?b, ?c, ?d, ?e, ?f]],
+      [:mac_id, "abc", "abc\0\0\0", [?a, ?b, ?c, 0, 0, 0]],
+      [:mac_id, "", "\0\0\0\0\0\0", [0, 0, 0, 0, 0, 0]],
+      [:mac_id, "abcdefg", nil, nil],
+      [:mac_id, [?a, ?b, ?c, ?d, ?e, ?f], "abcdef", [?a, ?b, ?c, ?d, ?e, ?f]],
+      [:mac_id, [?a, ?b, ?c], "abc\0\0\0", [?a, ?b, ?c, 0, 0, 0]],
+      [:mac_id, [], "\0\0\0\0\0\0", [0, 0, 0, 0, 0, 0]],
+      [:mac_id, [?a, ?b, ?c, ?d, ?e, ?f, ?g], nil, nil],
+    ].each do |line|
+      type, source, string, array = *line
+      string ||= source
+      if array
+        assert_equal array, Abi.send(:"to_#{type}", source),
+                     "#{type} failed on string -> array"
+        assert_equal string, Abi.send(:"read_#{type}", @garbage + array,
+                                      @garbage.length)
+      else
+        assert_raise RuntimeError do
+          assert_equal array, Abi.send(:"to_#{type}", source)
+        end
+      end      
+    end    
+  end
+  
+  def test_object_wrapper
+    packed = { :p => 2301, :q => 4141, :n => 60 } 
+    gold_packed = Abi.to_packed packed
+    wrapped = Abi.read_wrapped_raw @garbage + gold_packed, @garbage.length
+    assert_equal Wrapped, wrapped.class,
+                 'Reading wrapped object instantiated wrong class'
+    assert_equal [packed[:p], packed[:q], packed[:n], nil],
+                 [wrapped.p, wrapped.q, wrapped.n, wrapped.d],
+                 'Reading wrapped object gave wrong attributes'
+    assert_equal gold_packed, Abi.to_wrapped_raw(wrapped),
+                 'Wrapped object -> array'
+  end
+
+  def test_object_wrapper_with_hooks
+    packed = { :p => 2301, :q => 4141, :n => 60 } 
+    gold_packed = Abi.to_packed packed
+    wrapped = Abi.read_wrapped @garbage + gold_packed, @garbage.length
+    assert_equal Wrapped, wrapped.class,
+                 'Reading wrapped object instantiated wrong class'
+    assert_equal [nil, nil, nil, packed[:p] * packed[:q]],
+                 [wrapped.p, wrapped.q, wrapped.n, wrapped.d],
+                 'Reading wrapped object with hook gave wrong attributes'
+                 
+    wrapped = Abi.read_wrapped_raw gold_packed, 0
+    packed[:n] *= 100
+    gold_packed = Abi.to_packed packed
+    assert_equal gold_packed, Abi.to_wrapped(wrapped),
+                 'Wrapped object -> array (with hook)'
   end
   
   def test_length
     [[:byte, 1], [:ubyte, 1],
      [:word, 2], [:netword, 2],
-     [:dword, 4], [:udword, 4]
+     [:dword, 4], [:udword, 4],
+     [:mac_id, 6]
     ].each do |test_line|
-      assert_equal test_line.last, Abi.send(:"#{test_line.first}_length")
+      assert_equal test_line.last, Abi.send(:"#{test_line.first}_length"),
+                   "length failed for #{test_line.first}"
     end
   end
 end

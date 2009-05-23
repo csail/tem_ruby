@@ -6,7 +6,18 @@ require 'tem_ruby'
 class AbiBuilderTest < Test::Unit::TestCase
   class Wrapped
     attr_accessor :p, :q, :n
-    attr_accessor :d  # Derived value
+    attr_accessor :d  # Derived value.
+    attr_accessor :c  # Constructor value.
+    
+    def initialize(ctor_value = 'ctor default')
+      self.c = ctor_value
+    end
+  end
+  
+  class Multi
+    attr_accessor :p, :q, :n
+    attr_accessor :a, :b, :c
+    attr_accessor :str, :const
   end
   
   module Abi
@@ -32,12 +43,16 @@ class AbiBuilderTest < Test::Unit::TestCase
                                          :signed => false,
                                          :big_endian => true
       abi.fixed_length_string :mac_id, 6
-      abi.object_wrapper :wrapped_raw, Wrapped, :packed
-      abi.object_wrapper :wrapped, Wrapped, :packed,
+      abi.object_wrapper :wrapped_raw, Wrapped, [:packed, nil]
+      abi.object_wrapper :wrapped, Wrapped, [:packed, nil],
           :to => lambda { |o| w = Wrapped.new
                               w.p, w.q, w.n = o.p, o.q, o.n * 100
                               w },
-          :read => lambda { |o| w = Wrapped.new; w.d = o.p * o.q; w }
+          :read => lambda { |o| w = Wrapped.new(o.c); w.d = o.p * o.q; w },
+          :new => lambda { |klass| klass.new('hook-new') }
+      abi.object_wrapper :multi, Multi,
+                         [:packed, nil,:packed, { :p => :a, :q => :b, :n => :c},
+                          :mac_id, :str, 'constant string', :const]
     end
   end
   
@@ -94,6 +109,17 @@ class AbiBuilderTest < Test::Unit::TestCase
                      "#{type} failed on OpenSSL number -> array"
         assert_equal number, Abi.send(:"read_#{type}", @garbage + array,
                                       @garbage.length)
+        if Abi.respond_to? :"#{type}_length"
+          assert_equal array.length, Abi.send(:"#{type}_length"),
+                       "#{type} failed on length"
+        elsif Abi.respond_to? :"read_#{type}_length"
+          assert_equal array.length,
+                       Abi.send(:"read_#{type}_length", @garbage + array,
+                                @garbage.length),
+                       "#{type} failed on read_#{type}_length"
+        else
+          flunk "#{type} does not provide _length or read_#{type}_length"
+        end
       else
         assert_raise RuntimeError do
           assert_equal array, Abi.send(:"to_#{type}", number)
@@ -116,6 +142,10 @@ class AbiBuilderTest < Test::Unit::TestCase
     assert_equal gold_packed, Abi.to_packed(packed), 'packed'
     assert_equal packed, Abi.read_packed(@garbage + gold_packed,
                                          @garbage.length), 'packed'
+    assert_equal gold_packed.length,
+                 Abi.read_packed_length(@garbage + gold_packed,
+                                        @garbage.length),
+                 'read_packed_length'
     
     net_packed = { :x => 0x271, :y => 0x314159, :z => 0, :a => 0x5AA5 }
     gold_net_packed = [0x00, 0x02, 0x00, 0x03, 0x00, 0x01, 0x00, 0x02,
@@ -124,6 +154,10 @@ class AbiBuilderTest < Test::Unit::TestCase
     assert_equal net_packed, Abi.read_net_packed(@garbage + gold_net_packed,
                                                  @garbage.length),
                  'net_packed'
+    assert_equal gold_net_packed.length,
+                 Abi.read_net_packed_length(@garbage + gold_net_packed,
+                                            @garbage.length),
+                 'read_net_packed_length'
     components = Abi.net_packed_components
     assert_equal [:x, :y, :z, :a], components,
                  'incorrect result from _components'
@@ -158,27 +192,45 @@ class AbiBuilderTest < Test::Unit::TestCase
     end    
   end
   
-  def test_object_wrapper
+  def test_object_wrapper_directs
     packed = { :p => 2301, :q => 4141, :n => 60 } 
     gold_packed = Abi.to_packed packed
     wrapped = Abi.read_wrapped_raw @garbage + gold_packed, @garbage.length
     assert_equal Wrapped, wrapped.class,
                  'Reading wrapped object instantiated wrong class'
-    assert_equal [packed[:p], packed[:q], packed[:n], nil],
-                 [wrapped.p, wrapped.q, wrapped.n, wrapped.d],
+    assert_equal [packed[:p], packed[:q], packed[:n], nil, 'ctor default'],
+                 [wrapped.p, wrapped.q, wrapped.n, wrapped.d, wrapped.c],
                  'Reading wrapped object gave wrong attributes'
     assert_equal gold_packed, Abi.to_wrapped_raw(wrapped),
                  'Wrapped object -> array'
   end
+  
+  def test_object_wrapper_schema
+    packed = { :p => 2301, :q => 4141, :n => 60 } 
+    xpacked = { :p => 6996, :q => 1331, :n => 22 }
+    gold_packed = Abi.to_packed(packed) + Abi.to_packed(xpacked) +
+                  Abi.to_mac_id("abc")
+    multi = Abi.read_multi @garbage + gold_packed, @garbage.length
+    assert_equal Multi, multi.class,
+                'Reading wrapped object instantiated wrong class'
+    assert_equal [packed[:p], packed[:q], packed[:n],
+                  xpacked[:p], xpacked[:q], xpacked[:n], "abc\0\0\0",
+                  "constant string"],
+                 [multi.p, multi.q, multi.n, multi.a, multi.b, multi.c,
+                  multi.str, multi.const],
+                 'Reading wrapped object gave wrong attributes'
+    assert_equal gold_packed, Abi.to_multi(multi),
+                 'Wrapped object -> array'
+  end
 
-  def test_object_wrapper_with_hooks
+  def test_object_wrapper_hooks
     packed = { :p => 2301, :q => 4141, :n => 60 } 
     gold_packed = Abi.to_packed packed
     wrapped = Abi.read_wrapped @garbage + gold_packed, @garbage.length
     assert_equal Wrapped, wrapped.class,
                  'Reading wrapped object instantiated wrong class'
-    assert_equal [nil, nil, nil, packed[:p] * packed[:q]],
-                 [wrapped.p, wrapped.q, wrapped.n, wrapped.d],
+    assert_equal [nil, nil, nil, packed[:p] * packed[:q], 'hook-new'],
+                 [wrapped.p, wrapped.q, wrapped.n, wrapped.d, wrapped.c],
                  'Reading wrapped object with hook gave wrong attributes'
                  
     wrapped = Abi.read_wrapped_raw gold_packed, 0

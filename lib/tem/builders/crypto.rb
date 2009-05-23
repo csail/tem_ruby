@@ -23,13 +23,20 @@ class Crypto < Abi
   #   * to_private_name(key) -> array
   #   * read_public_name(array, offset) -> key
   #   * to_public_name(key) -> array
-  def asymmetric_key(name, ssl_class, abi_type_privkey, abi_type_pubkey,
+  def asymmetric_key(name, ssl_class, privkey_abi_type, pubkey_abi_type,
                      hooks = {})
-    object_wrapper "private_#{name}", ssl_class, abi_type_privkey,
+    object_wrapper "private_#{name}", ssl_class, [privkey_abi_type, nil],
                    { :read => hooks[:read_private], :to => hooks[:to_private] }
-    object_wrapper "public_#{name}", ssl_class, abi_type_pubkey,
+    object_wrapper "public_#{name}", ssl_class, [pubkey_abi_type, nil],
                    { :read => hooks[:read_public], :to => hooks[:to_public] }
-  end  
+  end
+  
+  # Defines the methods for a symmetric key.
+  #
+  # 
+  def symmetric_key(name, cipher_class, key_abi_type, hooks = {})
+    object_wrapper name, cipher_class, [key_abi_type, :key], hooks
+  end
 end  # class Crypto
 
 

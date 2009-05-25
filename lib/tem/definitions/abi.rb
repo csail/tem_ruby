@@ -1,4 +1,5 @@
 require 'openssl'
+require 'digest/sha1'
 
 
 module Tem::Abi
@@ -17,10 +18,12 @@ module Tem::Abi
         [:p, :q, :dmp1, :dmq1, :iqmp], :signed => false, :big_endian => true
     abi.packed_variable_length_numbers :tem_pubrsa_numbers, :tem_ushort,
         [:e, :n], :signed => false, :big_endian => true
-    abi.fixed_length_string :tem_aes_key_string, 16
+    abi.fixed_length_string :tem_aes_key_string, 16    
   end
   
   Tem::Builders::Crypto.define_crypto self do |crypto|
+    crypto.crypto_hash :tem_hash, Digest::SHA1
+    
     crypto.asymmetric_key :tem_rsa, OpenSSL::PKey::RSA, :tem_privrsa_numbers,
         :tem_pubrsa_numbers, :read_private => lambda { |key|
       # a bit of math to rebuild the public key
@@ -36,11 +39,18 @@ module Tem::Abi
       key
     }
     
-    crypto.symmetric_key :tem_aes_key, OpenSSL::Cipher::AES,
-                         :tem_aes_key_string,
-                         :new => lambda { |klass| klass.new 'ECB' }
+    crypto.symmetric_key :tem_aes_key, OpenSSL::Cipher::AES, 'ECB',
+                         :tem_aes_key_string
+    
+    crypto.conditional_wrapper :tem_key, 1,
+        [{:tag => [0x99], :type => :tem_key, :class => OpenSSL::Cipher::AES128},
+         {:tag => [0x55], :type => :public_tem_rsa,
+          :class => OpenSSL::PKey::RSA,
+          :predicate => lambda { |k| k.is_public? } },
+         {:tag => [0xAA], :type => :private_tem_rsa,
+          :class => OpenSSL::PKey::RSA}]
   end
-
+  
   # For convenience, include the Abi methods in Tem::Session's namespace.
   def self.included(klass)
     klass.extend Tem::Abi

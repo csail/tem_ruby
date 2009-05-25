@@ -7,16 +7,11 @@ module Tem::CryptoAbi
   
   # The methods that will be mixed into the TEM module
   module MixedMethods    
-    # The length of a TEM symmetric key.
-    def tem_symmetric_key_length
-      16 # 128 bits
-    end
-            
     def read_tem_key(buffer, offset)
       key_type = read_tem_ubyte buffer, offset
       case key_type
       when 0x99
-        key = buffer[offset + 1, tem_symmetric_key_length]                
+        key = buffer[offset + 1, tem_aes_key_string_length]                
       when 0xAA
         key = read_public_tem_rsa buffer, offset + 1
       when 0x55
@@ -24,7 +19,7 @@ module Tem::CryptoAbi
       else
         raise "Invalid key type #{'%02x' % key_type}"
       end
-      return new_key_from_ssl(key, (key_type == 0xAA)) 
+      return new_key_from_ssl key
     end
     
     def to_tem_key(ssl_key, type)
@@ -34,24 +29,18 @@ module Tem::CryptoAbi
       when :private
         to_private_tem_rsa(ssl_key).unshift 0x55
       else
-        # symmetric key
+        to_tem_aes(ssl_key).unshift 0x99
       end
     end
     
     # Creates a new TEM key wrapper from a SSL key
-    def new_key_from_ssl(ssl_key, is_public)
+    def new_key_from_ssl(ssl_key)
       if ssl_key.kind_of? OpenSSL::PKey::RSA
-        AsymmetricKey.new ssl_key, is_public, :pkcs1
+        AsymmetricKey.new ssl_key, :pkcs1
       else
         SymmetricKey.new ssl_key
       end
-    end
-    
-    # Compute a cryptographic hash in the same way that the TEM does.
-    def hash_for_tem(data)
-      data = data.pack 'C*' unless data.kind_of? String
-      Digest::SHA1.digest(data).unpack 'C*'
-    end
+    end    
   end
   
   self.extend MixedMethods
@@ -60,10 +49,6 @@ module Tem::CryptoAbi
     klass.extend MixedMethods
   end
   
-  def hash_for_tem(data)
-    Tem::CryptoAbi.hash_for_tem data
-  end
-
   def self.load_ssl(ssl_key)
     return { :pubkey => AsymmetricKey.new(ssl_key, true, :pkcs1),
              :privkey => AsymmetricKey.new(ssl_key, false, :pkcs1) }
@@ -91,7 +76,7 @@ module Tem::CryptoAbi
     end
   
     def to_array
-      [@ssl_key.to_pem, @is_public, @padding_type]
+      [@ssl_key.to_pem, @padding_type]
     end
     
     def to_yaml_str
@@ -103,9 +88,9 @@ module Tem::CryptoAbi
       return OpenSSL::PKey::RSA.generate(2048, 65537)
     end
         
-    def initialize(ssl_key, is_public, padding_type)
+    def initialize(ssl_key, padding_type)      
       @ssl_key = ssl_key
-      @is_public = is_public ? true : false
+      @is_public = !ssl_key.d
       @padding_type = padding_type
       
       case padding_type
@@ -120,7 +105,7 @@ module Tem::CryptoAbi
       end
       
       @size = 0
-      n = is_public ? @ssl_key.n : (@ssl_key.p * @ssl_key.q)
+      n = @is_public ? @ssl_key.n : (@ssl_key.p * @ssl_key.q)
       while n != 0 do
         @size += 1
         n >>= 8

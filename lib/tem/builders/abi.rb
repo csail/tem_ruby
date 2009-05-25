@@ -210,6 +210,7 @@ class Abi
   #  
   # The following methods are defined for a type named 'name':
   #   * read_name(array, offset) -> object
+  #   * read_name_length(array, offset) -> number
   #   * to_name(object) -> array
   #   * name_class -> Class
   #
@@ -232,6 +233,8 @@ class Abi
     to_body = "r = [];"
     to_body << "value = #{name}_tohook(value);" if hooks[:to]
     
+    readlen_body = "old_offset = offset;"
+    
     0.upto schema.length / 2 - 1 do |i|
       abi_type = schema[i * 2]
       type_mapping = schema[i * 2 + 1]
@@ -243,7 +246,7 @@ class Abi
         components.each { |c| type_mapping[c] = c }
       end
       
-      # Set up the reader method.
+      # Set up the read_ and read_name_length methods.
       if abi_type.kind_of? Symbol
         read_body << "v = read_#{abi_type}(array,offset);"
       else
@@ -260,14 +263,16 @@ class Abi
       if abi_type.kind_of? Symbol
         if @target.respond_to? :"#{abi_type}_length"
           read_body << "offset += #{@target.send :"#{abi_type}_length"};"
+          readlen_body << "offset += #{@target.send :"#{abi_type}_length"};"
         elsif @target.respond_to? :"read_#{abi_type}_length"
           read_body << "offset += read_#{abi_type}_length(array,offset);"        
+          readlen_body << "offset += read_#{abi_type}_length(array,offset);"        
         else
           raise "#{abi_type} doesn't support _length or read_#{abi_type}_length"
         end
       end
       
-      # Set up the to method.
+      # Set up the to_ method.
       next unless abi_type.kind_of? Symbol
       to_body << "r += to_#{abi_type}("
       case type_mapping
@@ -281,9 +286,11 @@ class Abi
     read_body << "r = self.#{name}_readhook(r);" if hooks[:read]
     read_body << "r;"
     to_body << "r;"
+    readlen_body << "offset - old_offset;"
 
-    define_str = "def read_#{name}(array,offset);#{read_body};end;"
-    define_str << "def to_#{name}(value);#{to_body};end;"
+    define_str = "def read_#{name}(array,offset);#{read_body}end;"
+    define_str << "def read_#{name}_length(array,offset);#{readlen_body}end;"
+    define_str << "def to_#{name}(value);#{to_body}end;"
     
     defines = Proc.new do 
       define_method(:"#{name}_class") { object_class }
@@ -296,7 +303,57 @@ class Abi
     @target.class_eval define_str
     (class << @target; self; end).module_eval &defines
     (class << @target; self; end).module_eval define_str
-  end  
+  end
+  
+  # Defines methods for handling an 'enum'-like ABI type whose type is
+  # determined by a fixed-length tag that is prefixed to the data.
+  # 
+  # tag_length indicates the tag's length, in bytes. The mapping between tags
+  # and lower-level ABI types is expressed as an array of rules. Each rule is a
+  # hash, and the following attributes are supported.
+  #   tag:: an array of numbers; the tag must match this array (de-serializing)
+  #   type:: the lower-level ABI type used for serialization/de-serialization
+  #   class:: a ruby Class; if present, the value must be a kind of the given
+  #       class to match the rule (serializing)
+  #   predicate:: a Proc; if present, the Proc is given the value, and must
+  #       return a true value for the value to match the rule (serializing)  
+  def conditional_wrapper(name, tag_length, rules)
+    impl = Tem::Builders::Abi::Impl
+    
+    defines = Proc.new do 
+      define_method :"read_#{name}" do |array, offset|      
+        tag = array[offset, tag_length]
+        matching_rule = rules.find { |rule| rule[:tag] == tag }
+        raise "Rules don't cover tag #{tag.inspect}" unless matching_rule
+        self.send :"read_#{matching_rule[:type]}", array, offset + tag_length
+      end
+      define_method :"read_#{name}_length" do |array, offset|      
+        tag = array[offset, tag_length]
+        matching_rule = rules.find { |rule| rule[:tag] == tag }
+        raise "Rules don't cover tag #{tag.inspect}" unless matching_rule
+        if self.respond_to? :"#{matching_rule[:type]}_length"
+          tag_length + self.send(:"#{matching_rule[:type]}_length")
+        else
+          tag_length + self.send(:"read_#{matching_rule[:type]}_length", array,
+                                 offset + tag_length)
+        end
+      end
+      define_method :"to_#{name}" do |value|
+        matching_rule = rules.find do |rule|
+          next false if rule[:class] && !value.kind_of?(rule[:class])
+          next false if rule[:predicate] && !rule[:predicate].call(value)
+          true
+        end
+
+        raise "Rules don't cover #{value.inspect}" unless matching_rule
+        matching_rule[:tag] + self.send(:"to_#{matching_rule[:type]}", value)
+      end
+      define_method(:"#{name}_length") { bytes }
+    end
+    
+    @target.class_eval &defines
+    (class << @target; self; end).module_eval &defines    
+  end
   
   # The module / class impacted by the builder.
   attr_reader :target
@@ -419,7 +476,7 @@ module Abi::Impl
     length ||= 0
     array << 0 while array.length < length
     array
-  end
+  end  
 end
 
 end  # namespace Tem::Builders

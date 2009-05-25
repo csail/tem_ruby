@@ -88,4 +88,3 @@ class Tem::SecAssembler
     @extra_bytes = extra_bytes
   end
 end
-

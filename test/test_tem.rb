@@ -236,7 +236,8 @@ class TemTest < TemTestCase
     }
     
     result = @tem.execute sec
-    assert_equal [garbage1, garbage2, garbage2].map { |d| @tem.hash_for_tem d}.flatten,
+    assert_equal [garbage1, garbage2, garbage2].map { |d| @tem.tem_hash d}.
+                                                flatten,
                   result, 'cryptographic hashing isn\'t working well'
   end
   
@@ -418,8 +419,8 @@ class TemTest < TemTestCase
     
     # crypto run with an externally generated key
     ekey = OpenSSL::PKey::RSA.generate(2048, 65537)
-    pubk = @tem.new_key_from_ssl ekey, true
-    privk = @tem.new_key_from_ssl ekey, false
+    pubk = @tem.new_key_from_ssl ekey.public_key
+    privk = @tem.new_key_from_ssl ekey
     pubk_id = @tem.tk_post_key pubk, keyd[:authz] 
     privk_id = @tem.tk_post_key privk, keyd[:authz]
     i_test_crypto_pki_ops(pubk_id, privk_id, pubk, privk, keyd[:authz])    

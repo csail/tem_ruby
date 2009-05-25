@@ -18,7 +18,7 @@ module Tem::ECert
   
   # retrieves the TEM's Public Endorsement Key
   def pubek
-    new_key_from_ssl endorsement_cert.public_key, true
+    new_key_from_ssl endorsement_cert.public_key
   end
   
   # emits a TEM

@@ -39,7 +39,7 @@ class Tem::SecPack
     # TODO: use 0x0100 (no tracing) depending on options
     hh = [0x0101, @signed_bytes || 0, @encrypted_bytes || 0, @extra_bytes, @sp,
           @ep].map { |n| @tem_klass.to_tem_ushort n }.flatten
-    hh += Array.new((@tem_klass.hash_for_tem [0]).length - hh.length, 0)
+    hh += Array.new((@tem_klass.tem_hash [0]).length - hh.length, 0)
     return hh
   end
   
@@ -50,7 +50,7 @@ class Tem::SecPack
     @signed_bytes = encrypt_from
     @encrypted_bytes = plaintext_from - encrypt_from
     
-    secpack_sig = @tem_klass.hash_for_tem [tem_header, @body[0...plaintext_from]].flatten
+    secpack_sig = @tem_klass.tem_hash [tem_header, @body[0...plaintext_from]].flatten
     crypt = public_key.encrypt [@body[encrypt_from...plaintext_from], secpack_sig].flatten
     @body = [@body[0...encrypt_from], crypt, @body[plaintext_from..-1]].flatten
       

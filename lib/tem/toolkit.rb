@@ -34,7 +34,8 @@ module Tem::Toolkit
     
     kp_buffer = execute gen_sec
     keys_offset = authz.nil? ? 20 : 0
-    k1id, k2id = read_tem_ushort(kp_buffer, keys_offset), read_tem_ushort(kp_buffer, keys_offset + 2) 
+    k1id = read_tem_ushort kp_buffer, keys_offset
+    k2id = read_tem_ushort kp_buffer, keys_offset + 2
     if type == :asymmetric 
       return_val = { :pubk_id => k1id, :privk_id => k2id }
     else

@@ -79,8 +79,8 @@ class DriverTest < TemTestCase
   
   def test_crypto_abi
     ekey = OpenSSL::PKey::RSA.generate(2048, 65537)
-    pubk = @tem.new_key_from_ssl ekey, true
-    privk = @tem.new_key_from_ssl ekey, false
+    pubk = @tem.new_key_from_ssl ekey.public_key
+    privk = @tem.new_key_from_ssl ekey
     
     # array and string encryption/decryption
     garbage = (1...569).map { |i| (i * i * 217 + i * 661 + 393) % 256 }

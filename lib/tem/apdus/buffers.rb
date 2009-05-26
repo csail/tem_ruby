@@ -1,4 +1,7 @@
-module Tem::Buffers
+# :nodoc: namespace
+module Tem::Apdus
+
+module Buffers
   def alloc_buffer(length)
     response = @transport.applet_apdu! :ins => 0x20,
                                        :p12 => to_tem_short(length)
@@ -83,3 +86,5 @@ module Tem::Buffers
     return buffer_id
   end
 end
+
+end  # namespace Tem::Apdus

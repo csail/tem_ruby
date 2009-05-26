@@ -1,4 +1,7 @@
-module Tem::Tag
+# :nodoc: namespace
+module Tem::Apdus
+  
+module Tag
   def set_tag(tag_data)    
     buffer_id = post_buffer tag_data
     begin
@@ -31,3 +34,5 @@ module Tem::Tag
     get_tag_data 0, tag_length
   end
 end
+
+end  # namespace Tem::Apdus

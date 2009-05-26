@@ -29,11 +29,15 @@ class Crypto < Abi
   def asymmetric_key(name, ssl_class, privkey_abi_type, pubkey_abi_type,
                      hooks = {})
     object_wrapper "private_#{name}", ssl_class, [privkey_abi_type, nil],
-                   :read => hooks[:read_private], :to => hooks[:to_private],
-                   :new => hooks[:new_private] || lambda { |k| ssl_class.new }
+                   :read => hooks[:read_private] || hooks[:read],
+                   :to => hooks[:to_private] || hooks[:to],
+                   :new => hooks[:new_private] || hooks[:new] ||
+                           lambda { |k| ssl_class.new }
     object_wrapper "public_#{name}", ssl_class, [pubkey_abi_type, nil],
-                   :read => hooks[:read_public], :to => hooks[:to_public],
-                   :new => hooks[:new_private] || lambda { |k| ssl_class.new }
+                   :read => hooks[:read_public] || hooks[:read],
+                   :to => hooks[:to_public] || hooks[:to],
+                   :new => hooks[:new_private] || hooks[:new] ||
+                           lambda { |k| ssl_class.new }
   end
   
   # Defines the methods for a symmetric key.

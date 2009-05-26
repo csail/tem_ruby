@@ -419,8 +419,8 @@ class TemTest < TemTestCase
     
     # crypto run with an externally generated key
     ekey = OpenSSL::PKey::RSA.generate(2048, 65537)
-    pubk = @tem.new_key_from_ssl ekey.public_key
-    privk = @tem.new_key_from_ssl ekey
+    pubk = Tem::Key.new_from_ssl_key ekey.public_key
+    privk = Tem::Key.new_from_ssl_key ekey
     pubk_id = @tem.tk_post_key pubk, keyd[:authz] 
     privk_id = @tem.tk_post_key privk, keyd[:authz]
     i_test_crypto_pki_ops(pubk_id, privk_id, pubk, privk, keyd[:authz])    

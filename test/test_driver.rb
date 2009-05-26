@@ -79,8 +79,8 @@ class DriverTest < TemTestCase
   
   def test_crypto_abi
     ekey = OpenSSL::PKey::RSA.generate(2048, 65537)
-    pubk = @tem.new_key_from_ssl ekey.public_key
-    privk = @tem.new_key_from_ssl ekey
+    pubk = Tem::Key.new_from_ssl_key ekey.public_key
+    privk = Tem::Key.new_from_ssl_key ekey
     
     # array and string encryption/decryption
     garbage = (1...569).map { |i| (i * i * 217 + i * 661 + 393) % 256 }
@@ -95,9 +95,9 @@ class DriverTest < TemTestCase
     
     # test key serialization/deserialization through encryption/decryption
     pubk_ys = pubk.to_yaml_str
-    pubk2 = Tem::CryptoAbi::AsymmetricKey.new_from_yaml_str(pubk_ys)
+    pubk2 = Tem::Keys::Asymmetric.new_from_yaml_str(pubk_ys)
     privk_ys = privk.to_yaml_str
-    privk2 = Tem::CryptoAbi::AsymmetricKey.new_from_yaml_str(privk_ys)
+    privk2 = Tem::Keys::Asymmetric.new_from_yaml_str(privk_ys)
     encrypted_garbage = pubk.encrypt garbage
     decrypted_garbage = privk2.decrypt encrypted_garbage
     assert_equal garbage, decrypted_garbage, 'pub-encryption+priv-decryption messed up the data'

@@ -1,13 +1,13 @@
 class Tem::Session
   include Tem::Abi
-  include Tem::Buffers
+  include Tem::Apdus::Buffers
+  include Tem::Apdus::Keys
+  include Tem::Apdus::Lifecycle
+  include Tem::Apdus::Tag
+  
   include Tem::CA
-  include Tem::CryptoAbi
   include Tem::ECert
-  include Tem::Keys
-  include Tem::Lifecycle
   include Tem::SeClosures
-  include Tem::Tag
   include Tem::Toolkit
   
   CAPPLET_AID = [0x19, 0x83, 0x12, 0x29, 0x10, 0xBA, 0xBE]

@@ -24,8 +24,11 @@ module Tem::Abi
   Tem::Builders::Crypto.define_crypto self do |crypto|
     crypto.crypto_hash :tem_hash, Digest::SHA1
     
-    crypto.asymmetric_key :tem_rsa, OpenSSL::PKey::RSA, :tem_privrsa_numbers,
-        :tem_pubrsa_numbers, :read_private => lambda { |key|
+    crypto.asymmetric_key :tem_rsa, Tem::Keys::Asymmetric, :tem_privrsa_numbers,
+        :tem_pubrsa_numbers, :new => lambda { |key| OpenSSL::PKey::RSA.new },
+        :to => lambda { |k| k.ssl_key },
+        :read_public => lambda { |key| Tem::Keys::Asymmetric.new key },
+        :read_private => lambda { |key|
       # a bit of math to rebuild the public key
       key.n = key.p * key.q
       p1, q1 = key.p - 1, key.q - 1          
@@ -36,19 +39,25 @@ module Tem::Abi
       emq1 = key.dmq1.mod_inverse q1
       key.e = (emp1 < emq1) ? emp1 : emq1
       key.d = key.e.mod_inverse p1q1
-      key
+      Tem::Keys::Asymmetric.new key
     }
     
-    crypto.symmetric_key :tem_aes_key, OpenSSL::Cipher::AES, 'ECB',
-                         :tem_aes_key_string
+    crypto.symmetric_key :tem_aes_key, Tem::Keys::Symmetric, nil,
+                         :tem_aes_key_string,
+                         :new => lambda { |k| OpenSSL::Cipher::AES.new 'ECB' },
+                         :read => lambda { |k| Tem::Keys::Symmetric.new k },
+                         :to => lambda { |k| k.ssl_key }
     
     crypto.conditional_wrapper :tem_key, 1,
-        [{:tag => [0x99], :type => :tem_key, :class => OpenSSL::Cipher::AES128},
-         {:tag => [0x55], :type => :public_tem_rsa,
-          :class => OpenSSL::PKey::RSA,
-          :predicate => lambda { |k| k.is_public? } },
-         {:tag => [0xAA], :type => :private_tem_rsa,
-          :class => OpenSSL::PKey::RSA}]
+        [{:tag => [0x99], :type => :tem_key,
+          :class => Tem::Keys::Symmetric },
+         {:tag => [0xAA], :type => :public_tem_rsa,
+          :class => Tem::Keys::Asymmetric,
+          :predicate => lambda { |k| k.ssl_key.kind_of?(OpenSSL::PKey::RSA) &&
+                                     k.is_public? } },
+         {:tag => [0x55], :type => :private_tem_rsa,
+          :class => Tem::Keys::Asymmetric,
+          :predicate => lambda { |k| k.ssl_key.kind_of?(OpenSSL::PKey::RSA) } }]
   end
   
   # For convenience, include the Abi methods in Tem::Session's namespace.

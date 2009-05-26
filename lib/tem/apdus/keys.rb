@@ -1,4 +1,7 @@
-module Tem::Keys
+# :nodoc: namespace
+module Tem::Apdus
+  
+module Keys
   def devchip_generate_key_pair
     response = @transport.applet_apdu! :ins => 0x40
     return { :privkey_id => read_tem_byte(response, 0),
@@ -11,13 +14,13 @@ module Tem::Keys
   end
   
   def devchip_save_key(key_id)
-    response = @transport.applet_apdu! :ins => 0x43, :p1 => key_id    
+    response = @transport.applet_apdu! :ins => 0x43, :p1 => key_id
     buffer_id = read_tem_byte response, 0 
     buffer_length = read_tem_short response, 1
     key_buffer = read_buffer buffer_id
     release_buffer buffer_id
     
-    read_tem_key key_buffer[0...buffer_length], 0
+    read_tem_key key_buffer[0, buffer_length], 0
   end
   
   def devchip_encrypt_decrypt(data, key_id, opcode)
@@ -34,7 +37,7 @@ module Tem::Keys
     data_buffer = read_buffer buffer_id
     release_buffer buffer_id
     
-    return data_buffer[0...buffer_length]
+    return data_buffer[0, buffer_length]
   end
   def devchip_encrypt(data, key_id)
     devchip_encrypt_decrypt data, key_id, 0x44
@@ -57,3 +60,5 @@ module Tem::Keys
     return stat
   end  
 end
+
+end  # namespace Tem::Apdus

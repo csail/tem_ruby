@@ -90,11 +90,11 @@ class TemTest < TemTestCase
       s.outw        
       s.halt
       s.label :area1
-      s.immed :ubyte, [0xFE, 0xCD, 0x9A]
+      s.immed :tem_ubyte, [0xFE, 0xCD, 0x9A]
       s.label :area2
-      s.immed :ubyte, [0xAB, 0x95, 0xCE, 0xFD, 0x81]
+      s.immed :tem_ubyte, [0xAB, 0x95, 0xCE, 0xFD, 0x81]
       s.label :area3
-      s.immed :ubyte, [0xEC, 0xDE, 0xAD, 0xCF]
+      s.immed :tem_ubyte, [0xEC, 0xDE, 0xAD, 0xCF]
       s.stack
       s.extra 10
     }
@@ -183,17 +183,17 @@ class TemTest < TemTestCase
     
       s.halt
       s.label :cmp_lo
-      s.immed :ubyte, [0xA3, 0x2C, 0x51, 0x63, 0x2C, 0x12]
+      s.immed :tem_ubyte, [0xA3, 0x2C, 0x51, 0x63, 0x2C, 0x12]
       s.label :cmp_med
-      s.immed :ubyte, [0xA3, 0x2C, 0x51, 0x63, 0x2D, 0x11]
+      s.immed :tem_ubyte, [0xA3, 0x2C, 0x51, 0x63, 0x2D, 0x11]
       s.label :cmp_hi
-      s.immed :ubyte, [0xA3, 0x2C, 0x51, 0x63, 0x2E, 0x10]
+      s.immed :tem_ubyte, [0xA3, 0x2C, 0x51, 0x63, 0x2E, 0x10]
       s.label :cmp_hi2
-      s.immed :ubyte, [0xA3, 0x2C, 0x51, 0x63, 0x2E, 0x10]
+      s.immed :tem_ubyte, [0xA3, 0x2C, 0x51, 0x63, 0x2E, 0x10]
       s.label :copy_buf
-      s.filler :ubyte, 6
+      s.filler :tem_ubyte, 6
       s.label :copy_buf2
-      s.filler :ubyte, 4
+      s.filler :tem_ubyte, 4
       s.stack
       s.extra 10
     }
@@ -226,11 +226,11 @@ class TemTest < TemTestCase
       s.outfxb :size => hash_size, :from => :hash_area
       s.halt
       s.label :garbage1
-      s.immed :ubyte, garbage1
+      s.immed :tem_ubyte, garbage1
       s.label :garbage2
-      s.immed :ubyte, garbage2
+      s.immed :tem_ubyte, garbage2
       s.label :hash_area
-      s.filler :ubyte, hash_size
+      s.filler :tem_ubyte, hash_size
       s.stack
       s.extra 10
     }
@@ -278,11 +278,11 @@ class TemTest < TemTestCase
       s.halt
     
       s.label :pstore_addr
-      s.immed :ubyte, addr1
+      s.immed :tem_ubyte, addr1
       s.label :s_value
-      s.immed :ubyte, random_value
+      s.immed :tem_ubyte, random_value
       s.label :s_value2
-      s.filler :ps_value
+      s.filler :tem_ps_value
       s.stack
       s.extra 16
     }    
@@ -305,7 +305,7 @@ class TemTest < TemTestCase
       s.rnd
       s.halt
       s.label :rnd_area
-      s.filler :ubyte, 8
+      s.filler :tem_ubyte, 8
       s.stack
       s.extra 10
     }
@@ -338,12 +338,12 @@ class TemTest < TemTestCase
       s.halt
       
       s.label :key_auth
-      s.immed :ubyte, authz
+      s.immed :tem_ubyte, authz
       s.label :data
-      s.immed :ubyte, data
+      s.immed :tem_ubyte, data
       unless direct_io
         s.label :outdata
-        s.filler :ubyte, max_output
+        s.filler :tem_ubyte, max_output
       end
       s.stack
       s.extra 10
@@ -363,11 +363,11 @@ class TemTest < TemTestCase
       s.halt
       
       s.label :key_auth
-      s.immed :ubyte, authz
+      s.immed :tem_ubyte, authz
       s.label :data
-      s.immed :ubyte, data
+      s.immed :tem_ubyte, data
       s.label :signature
-      s.immed :ubyte, signature
+      s.immed :tem_ubyte, signature
       s.stack
       s.extra 10
     }
@@ -438,7 +438,7 @@ class TemTest < TemTestCase
         s.outfxb :size => secret.length, :from => :secret
         s.halt
         s.label :secret
-        s.immed :ubyte, secret
+        s.immed :tem_ubyte, secret
         s.label :plain
         s.stack
         s.extra 8

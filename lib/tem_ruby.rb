@@ -24,8 +24,10 @@ require 'tem/keys/symmetric.rb'
 
 require 'tem/builders/abi.rb'
 require 'tem/builders/crypto.rb'
+require 'tem/builders/isa.rb'
 
 require 'tem/definitions/abi.rb'
+require 'tem/definitions/isa.rb'
 
 require 'tem/auto_conf.rb'
 require 'tem/apdus/buffers.rb'
@@ -37,7 +39,6 @@ require 'tem/ca.rb'
 require 'tem/ecert.rb'
 require 'tem/hive.rb'
 require 'tem/sec_assembler.rb'
-require 'tem/sec_opcodes.rb'
 require 'tem/sec_exec_error.rb'
 require 'tem/seclosures.rb'
 require 'tem/secpack.rb'

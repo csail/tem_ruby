@@ -28,17 +28,24 @@ class Crypto < Abi
   #   * public_name_class -> Class
   def asymmetric_key(name, ssl_class, privkey_abi_type, pubkey_abi_type,
                      hooks = {})
-    object_wrapper "private_#{name}", ssl_class, [privkey_abi_type, nil],
-                   :read => hooks[:read_private] || hooks[:read],
-                   :to => hooks[:to_private] || hooks[:to],
+    object_wrapper "private_#{name}", Tem::Keys::Asymmetric,
+                   [privkey_abi_type, nil],
+                   :read => hooks[:read_private] || hooks[:read] ||
+                            lambda { |k| Tem::Keys::Asymmetric.new k },
+                   :to => hooks[:to_private] || hooks[:to] ||
+                          lambda { |k| k.ssl_key },
                    :new => hooks[:new_private] || hooks[:new] ||
                            lambda { |k| ssl_class.new }
-    object_wrapper "public_#{name}", ssl_class, [pubkey_abi_type, nil],
-                   :read => hooks[:read_public] || hooks[:read],
-                   :to => hooks[:to_public] || hooks[:to],
+    object_wrapper "public_#{name}", Tem::Keys::Asymmetric,
+                   [pubkey_abi_type, nil],
+                   :read => hooks[:read_public] || hooks[:read] ||
+                            lambda { |k| Tem::Keys::Asymmetric.new k },                   
+                   :to => hooks[:to_public] || hooks[:to] ||
+                          lambda { |k| k.ssl_key },
                    :new => hooks[:new_private] || hooks[:new] ||
                            lambda { |k| ssl_class.new }
   end
+  
   
   # Defines the methods for a symmetric key.
   #
@@ -50,9 +57,11 @@ class Crypto < Abi
   #   * to_name(object) -> array
   #   * name_class -> Class
   def symmetric_key(name, cipher_class, cipher_name, key_abi_type, hooks = {})
-    object_wrapper name, cipher_class, [key_abi_type, :key],
+    object_wrapper name, Tem::Keys::Symmetric, [key_abi_type, :key],
+        :read => lambda { |k| Tem::Keys::Symmetric.new k },
+        :to => lambda { |k| k.ssl_key },
         :new => lambda { |klass|
-      k = klass.new cipher_name
+      k = cipher_class cipher_name
       
       unless k.respond_to? :key
         # Some ciphers don't give back the key that they receive.

@@ -4,11 +4,11 @@ require 'openssl'
 # :nodoc: namespace
 module Tem::Builders  
 
-# Builder class and namespace for the ABI builder.
+# Builder class and namespace for the ABI (Abstract Binary Interface) builder.
 class Abi
   # Creates a builder targeting a module / class.
   #
-  # The given parameter should be a class or module
+  # The given parameter should be a class or module.
   def self.define_abi(class_or_module)  # :yields: abi
     yield new(class_or_module)
   end

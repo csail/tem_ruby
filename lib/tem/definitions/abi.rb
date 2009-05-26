@@ -24,12 +24,13 @@ module Tem::Abi
   Tem::Builders::Crypto.define_crypto self do |crypto|
     crypto.crypto_hash :tem_hash, Digest::SHA1
     
-    crypto.asymmetric_key :tem_rsa, Tem::Keys::Asymmetric, :tem_privrsa_numbers,
-        :tem_pubrsa_numbers, :new => lambda { |key| OpenSSL::PKey::RSA.new },
-        :to => lambda { |k| k.ssl_key },
-        :read_public => lambda { |key| Tem::Keys::Asymmetric.new key },
+    crypto.asymmetric_key :tem_rsa, OpenSSL::PKey::RSA, :tem_privrsa_numbers,
+        :tem_pubrsa_numbers, 
         :read_private => lambda { |key|
-      # a bit of math to rebuild the public key
+      # The TEM uses the Chinese Remainder Theorem form of RSA keys, while
+      # OpenSSL uses the straightforward form (n, e, d).
+
+      # Rebuild the straightforward form from the CRT form.
       key.n = key.p * key.q
       p1, q1 = key.p - 1, key.q - 1          
       p1q1 = p1 * q1
@@ -42,11 +43,8 @@ module Tem::Abi
       Tem::Keys::Asymmetric.new key
     }
     
-    crypto.symmetric_key :tem_aes_key, Tem::Keys::Symmetric, nil,
-                         :tem_aes_key_string,
-                         :new => lambda { |k| OpenSSL::Cipher::AES.new 'ECB' },
-                         :read => lambda { |k| Tem::Keys::Symmetric.new k },
-                         :to => lambda { |k| k.ssl_key }
+    crypto.symmetric_key :tem_aes_key, OpenSSL::Cipher::AES, 'ECB',
+                         :tem_aes_key_string
     
     crypto.conditional_wrapper :tem_key, 1,
         [{:tag => [0x99], :type => :tem_key,

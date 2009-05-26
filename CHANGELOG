@@ -1,3 +1,5 @@
+v0.10.2. More internal refactorings.
+
 v0.10.1. Internal refactorings.
 
 v0.10.0. New transport code, allowing for multiple readers and TEM proxying.

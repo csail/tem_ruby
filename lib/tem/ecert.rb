@@ -55,9 +55,9 @@ module Tem::ECert
       s.halt
       
       s.label :privek_auth
-      s.filler :ubyte, 20
+      s.filler :tem_ubyte, 20
       s.label :pubek_auth
-      s.filler :ubyte, 20
+      s.filler :tem_ubyte, 20
       s.stack
       s.extra 8
     end

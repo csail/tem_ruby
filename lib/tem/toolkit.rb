@@ -24,9 +24,9 @@ module Tem::Toolkit
       s.halt
       s.label :key_auth
       if authz.nil?
-        s.filler :ubyte, 20
+        s.filler :tem_ubyte, 20
       else
-        s.immed :ubyte, authz
+        s.immed :tem_ubyte, authz
       end
       s.stack
       s.extra 8
@@ -55,7 +55,7 @@ module Tem::Toolkit
       s.stk
       s.halt
       s.label :key_auth
-      s.immed :ubyte, authz
+      s.immed :tem_ubyte, authz
       s.stack
       s.extra 8      
     end
@@ -75,7 +75,7 @@ module Tem::Toolkit
       s.outb
       s.halt
       s.label :key_auth
-      s.immed :ubyte, authz
+      s.immed :tem_ubyte, authz
       s.stack
       s.extra 8
     end
@@ -93,9 +93,9 @@ module Tem::Toolkit
       s.outb
       s.halt
       s.label :key_data
-      s.immed :ubyte, key.to_tem_key
+      s.immed :tem_ubyte, key.to_tem_key
       s.label :key_auth
-      s.immed :ubyte, authz
+      s.immed :tem_ubyte, authz
       s.stack
       s.extra 8
     end

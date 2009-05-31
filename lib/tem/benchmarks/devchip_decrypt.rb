@@ -1,4 +1,4 @@
-class TemTimings
+class Tem::Benchmarks
   def time_devchip_decrypt
     pubek = @tem.pubek
     data = (1...120).map { |i| (i * i * 217 + i * 661 + 393) % 256 }

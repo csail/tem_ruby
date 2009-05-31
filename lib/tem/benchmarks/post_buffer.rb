@@ -1,4 +1,4 @@
-class TemTimings
+class Tem::Benchmarks
   def time_post_buffer
     data = (0...490).map { |i| (39 * i * i + 91 * i + 17) % 256 }
     p @tem.stat_buffers

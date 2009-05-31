@@ -4,6 +4,6 @@
 require 'rubygems'
 require 'tem_ruby'
 
-require 'timings/timings.rb'
+require 'tem/benchmarks/benchmarks.rb'
 
-TemTimings.all_timings
+Tem::Benchmarks.display_all_benchmarks

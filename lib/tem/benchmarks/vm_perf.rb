@@ -1,4 +1,4 @@
-class TemTimings
+class Tem::Benchmarks
   def time_vm_perf
     secpack = @tem.assemble { |s|
       s.ldwc 48 * 10

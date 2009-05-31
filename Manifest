@@ -14,6 +14,14 @@ lib/tem/apdus/keys.rb
 lib/tem/apdus/lifecycle.rb
 lib/tem/apdus/tag.rb
 lib/tem/auto_conf.rb
+lib/tem/benchmarks/benchmarks.rb
+lib/tem/benchmarks/blank_bound_secpack.rb
+lib/tem/benchmarks/blank_sec.rb
+lib/tem/benchmarks/devchip_decrypt.rb
+lib/tem/benchmarks/post_buffer.rb
+lib/tem/benchmarks/simple_apdu.rb
+lib/tem/benchmarks/vm_perf.rb
+lib/tem/benchmarks/vm_perf_bound.rb
 lib/tem/builders/abi.rb
 lib/tem/builders/assembler.rb
 lib/tem/builders/crypto.rb
@@ -44,7 +52,6 @@ LICENSE
 Manifest
 Rakefile
 README
-tem_ruby.gemspec
 test/_test_cert.rb
 test/builders/test_abi_builder.rb
 test/tem_test_case.rb
@@ -65,11 +72,3 @@ test/test_exceptions.rb
 test/transport/test_auto_configurator.rb
 test/transport/test_java_card_mixin.rb
 test/transport/test_jcop_remote.rb
-timings/blank_bound_secpack.rb
-timings/blank_sec.rb
-timings/devchip_decrypt.rb
-timings/post_buffer.rb
-timings/simple_apdu.rb
-timings/timings.rb
-timings/vm_perf.rb
-timings/vm_perf_bound.rb

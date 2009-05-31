@@ -3,7 +3,7 @@ require 'yaml'
 
 # Certificate Authority (CA) functionality for TEM manufacturers
 module Tem::CA
-  # creates an Endorsement Certificate for a TEM's Public Endorsement Key
+  # Creates an Endorsement Certificate for a TEM's Public Endorsement Key.
   def new_ecert(pubek)
     ca_cert = Tem::CA.ca_cert
     ca_key = Tem::CA.ca_key
@@ -22,10 +22,16 @@ module Tem::CA
     cf.subject_certificate = ecert 
     cf.issuer_certificate = ca_cert
     ecert.add_extension cf.create_extension("basicConstraints", "CA:true", true)
-    ecert.add_extension cf.create_extension("authorityKeyIdentifier", "keyid,issuer")    
-    ecert.add_extension cf.create_extension("keyUsage", "digitalSignature,nonRepudiation,keyEncipherment,dataEncipherment,keyAgreement,keyCertSign,cRLSign")
-    ecert.add_extension cf.create_extension("extendedKeyUsage", "serverAuth,clientAuth,codeSigning,emailProtection,timeStamping,msCodeInd,msCodeCom,msCTLSign,msSGC,msEFS,nsSGC")
-    ecert.add_extension cf.create_extension("nsCertType", "client,server,email,objsign,sslCA,emailCA,objCA")
+    ecert.add_extension cf.create_extension("authorityKeyIdentifier",
+                                            "keyid,issuer")    
+    ecert.add_extension cf.create_extension("keyUsage",
+       "digitalSignature,nonRepudiation,keyEncipherment,dataEncipherment," +
+       "keyAgreement,keyCertSign,cRLSign")
+    ecert.add_extension cf.create_extension("extendedKeyUsage",
+       "serverAuth,clientAuth,codeSigning,emailProtection,timeStamping," +
+       "msCodeInd,msCodeCom,msCTLSign,msSGC,msEFS,nsSGC")
+    ecert.add_extension cf.create_extension("nsCertType",
+       "client,server,email,objsign,sslCA,emailCA,objCA")
     ecert.add_extension cf.create_extension("subjectKeyIdentifier", "hash")
     ecert.sign ca_key, OpenSSL::Digest::SHA1.new
     

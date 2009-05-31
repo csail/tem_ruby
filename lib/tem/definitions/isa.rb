@@ -129,14 +129,20 @@ module Tem::Isa
                                  :reladdr => 2}
     isa.instruction 0x25, :jle, {:name => :to, :type => :tem_ushort,
                                  :reladdr => 2}
+                                 
+    # 0 ST -> 1 ST; IP
+    isa.instruction 0x3E, :call, {:name => :proc, :type => :tem_ushort,
+                                  :reladdr => 2}
+    # 1 ST -> 0 ST; IP (without IM)
+    isa.instruction 0x3F, :ret
   
     # 1 IM_B -> 1 ST
     isa.instruction 0x30, :ldbc, {:name => :const, :type => :tem_byte}
     # 1 IM -> 1 ST
     isa.instruction 0x31, :ldwc, {:name => :const, :type => :tem_short}
-    # 1 ST -> 1 ST
+    # 0 ST -> 1 ST
     isa.instruction 0x32, :ldb, {:name => :from, :type => :tem_ushort}
-    # 1 ST -> 1 ST
+    # 0 ST -> 1 ST
     isa.instruction 0x33, :ldw, {:name => :from, :type => :tem_ushort}
     # 1 ST -> 1 ST
     isa.instruction 0x36, :ldbv

@@ -94,14 +94,38 @@ class Tem::SecPack
     [tem_header, @body, [0] * @extra_bytes].flatten
   end
   
-  def line_info_for_ip(ip)
+  def line_info_for_addr(addr)
     return nil unless @lines
 
     @lines.reverse_each do |info|
       # If something breaks, it's likely to happen after the opcode of the 
       # offending instruction has been read, so assume offending_ip < ip.
-      return info if ip >= info[0]
+      return info if addr >= info[0]
     end
     return info.first
+  end
+  
+  def label_info_for_addr(addr)
+    @labels.to_a.reverse_each do |info|
+      return info.reverse if addr >= info[1]
+    end
+  end
+  
+  # Methods for interacting with the plaintext content of a SECpack. 
+    
+  def set_value(label, abi_type, value)
+    expand_extra_bytes
+    raise "Unknown label #{label}" unless addr = @labels[label]
+    bytes = Tem::Abi.send :"to_#{abi_type}", value
+    @body[addr, bytes.length] = bytes
+    #trim_extra_bytes
+  end
+  
+  def get_value(label, abi_type)
+    expand_extra_bytes
+    raise "Unknown label #{label}" unless addr = @labels[label]
+    value = Tem::Abi.send :"read_#{abi_type}", @body, addr
+    #trim_extra_bytes
+    value
   end
 end

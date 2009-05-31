@@ -18,13 +18,13 @@ module TemBoundSecpackTestCase
         # Make sure the zero_bytes optimization doesn't screw things up.
         s.zeros :tem_ubyte, 60
         s.label :plain
+        s.zeros :tem_ubyte, 20
         s.stack 4
     }
 
     sb = bound_sec.body
-    secret_found = false
-    0.upto(sb.length - 1) { |i| if secret == sb[i, secret.length] then secret_found = true; break; end }
-    assert secret_found, 'test_bound_secpack needs rethinking: the unbound secpack does not contain the secret'
+    secret_offset = (0...sb.length).find { |i| secret == sb[i, secret.length] }    
+    assert secret_offset, 'The unbound secpack does not contain the secret.'
 
     bound_sec.bind pubk, :secret, :plain
     if yaml_roundtrip
@@ -36,11 +36,18 @@ module TemBoundSecpackTestCase
     assert_equal secret, result, 'TEM failed to decrypt secpack'
 
     sb = bound_sec.body
-    0.upto(sb.length - 1) { |i| assert_not_equal secret, sb[i, secret.length], 'secret found unencrypted in bound secpack' }
+    assert !(0...sb.length).find { |i| secret == sb[i, secret.length] },
+           'Secret found unencrypted in bound secpack'
 
-    bound_sec.body[bound_sec.label_address(:mess_place)] += 1
-    assert_raise(RuntimeError, 'secpack validation isn\'t working') { @tem.execute bound_sec }
-  end  
+    assert_equal 0, bound_sec.get_value(:plain, :tem_ushort),
+                 'SecPack plaintext corrupted during binding'
+
+    bound_sec.set_value :mess_place, :tem_ubyte,
+                        bound_sec.get_value(:mess_place, :tem_ubyte) + 1
+    assert_raise(RuntimeError, "secpack validation isn't working") do
+      @tem.execute bound_sec
+    end
+  end
 end
 
 class TemBoundSecpackTest < TemTestCase

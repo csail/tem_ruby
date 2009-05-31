@@ -4,20 +4,43 @@ class Tem::SecExecError < StandardError
   attr_reader :buffer_state, :key_state
   attr_reader :trace
   
-  def initialize(line_info, tem_trace, buffer_state, key_state)
+  def initialize(secpack, tem_trace, buffer_state, key_state)
     super 'SEC execution failed on the TEM'
-    @line_info = line_info
-    line_ip, atom, backtrace = *line_info
-    @atom = atom
+    
+    if tem_trace
+      if tem_trace[:ip]
+        @ip_line_info = secpack.line_info_for_addr tem_trace[:ip]
+        @ip_label_info = secpack.label_info_for_addr tem_trace[:ip]
+      end
+      if tem_trace[:sp]
+        @sp_line_info = secpack.line_info_for_addr tem_trace[:sp]
+      end
+    end
+    @ip_line_info ||= [0, :unknown, []]
+    @ip_label_info ||= [0, :unknown]
+    @sp_line_info ||= [0, :unknown, []]
+    
+    line_ip, atom, backtrace = *@ip_line_info
+    set_backtrace backtrace
+    @ip_atom = atom
+    @ip_label = @ip_label_info[1]
     if tem_trace and tem_trace[:ip]
       @ip_delta = tem_trace[:ip] - line_ip
+      @ip_label_delta = tem_trace[:ip] - @ip_label_info[0]
     else
-      @ip_delta = 0
+      @ip_delta = @ip_label_delta = 0
     end
+    line_sp, atom, backtrace = *@sp_line_info
+    @sp_atom = atom
+    if tem_trace and tem_trace[:sp]
+      @sp_delta = tem_trace[:sp] - line_sp
+    else
+      @sp_delta = 0
+    end
+    
     @trace = tem_trace
     @buffer_state = buffer_state
     @key_state = key_state
-    set_backtrace backtrace
   end
   
   def bstat_str
@@ -40,7 +63,10 @@ class Tem::SecExecError < StandardError
     if @trace.nil?
       "no trace available"
     else
-      "ip=#{'%04x' % @trace[:ip]} sp=#{'%04x' % @trace[:sp]} out=#{'%04x' % @trace[:out]} pscell=#{'%04x' % @trace[:pscell]}"
+      "ip=#{'%04x' % @trace[:ip]} (#{@ip_atom}+0x#{'%x' % @ip_delta}) " +
+      "sp=#{'%04x' % @trace[:sp]} (#{@sp_atom}+0x#{'%x' % @sp_delta}) " +
+      "out=#{'%04x' % @trace[:out]} " +
+      "pscell=#{'%04x' % @trace[:pscell]}"
     end
   end
   
@@ -52,7 +78,7 @@ TEM Trace: #{trace_str}
 TEM Buffer Status:#{bstat_str}
 TEM Key Status:#{kstat_str}
 
-TEM execution error at #{@atom}+#{@ip_delta}
+TEM execution error at #{@ip_label}+0x#{'%x' % @ip_label_delta}:
 ENDSTRING
     string.strip
   end

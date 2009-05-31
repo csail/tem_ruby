@@ -54,12 +54,7 @@ module Tem::SeClosures
         b_stat = stat_buffers() rescue nil
         k_stat = stat_keys() rescue nil
         trace = sec_trace()
-        if trace and trace[:ip]
-          line_info = secpack.line_info_for_ip(trace[:ip])
-        else
-          line_info = [0, :unknown, Kernel.caller]
-        end
-        sec_exception = Tem::SecExecError.new line_info, trace, b_stat, k_stat
+        sec_exception = Tem::SecExecError.new secpack, trace, b_stat, k_stat
         break
       when 4 # persistent store fault
         solve_psfault

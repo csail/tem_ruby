@@ -53,4 +53,30 @@ class TemBranchingTest < TemTestCase
                   0x10, 0x11, 0x12],
                  result, 'the branching unit isn\'t working well'        
   end
+  
+  def test_calls
+    secpack = @tem.assemble { |s|
+      s.ldbc 4
+      s.outnew
+      s.call :proc1
+      s.call :proc1
+      s.call :proc1
+      s.call :proc1
+      s.halt
+      
+      s.label :proc1
+      s.ldw :proc1var
+      s.dupn :n => 1
+      s.outb
+      s.ldbc 1
+      s.add
+      s.stw :proc1var
+      s.ret
+      s.label :proc1var
+      s.data :tem_short, 5
+      s.stack 3
+    }
+    result = @tem.execute secpack
+    assert_equal [5, 6, 7, 8], result, 'the branching unit isn\'t working well'    
+  end
 end

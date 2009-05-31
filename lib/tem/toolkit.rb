@@ -24,12 +24,11 @@ module Tem::Toolkit
       s.halt
       s.label :key_auth
       if authz.nil?
-        s.filler :tem_ubyte, 20
+        s.zeros :tem_ubyte, 20
       else
-        s.immed :tem_ubyte, authz
+        s.data :tem_ubyte, authz
       end
-      s.stack
-      s.extra 8
+      s.stack 4
     end
     
     kp_buffer = execute gen_sec
@@ -55,9 +54,8 @@ module Tem::Toolkit
       s.stk
       s.halt
       s.label :key_auth
-      s.immed :tem_ubyte, authz
-      s.stack
-      s.extra 8      
+      s.data :tem_ubyte, authz
+      s.stack 4
     end
     
     key_string = execute read_sec
@@ -75,9 +73,8 @@ module Tem::Toolkit
       s.outb
       s.halt
       s.label :key_auth
-      s.immed :tem_ubyte, authz
-      s.stack
-      s.extra 8
+      s.data :tem_ubyte, authz
+      s.stack 4
     end
     
     execute del_sec
@@ -93,11 +90,10 @@ module Tem::Toolkit
       s.outb
       s.halt
       s.label :key_data
-      s.immed :tem_ubyte, key.to_tem_key
+      s.data :tem_ubyte, key.to_tem_key
       s.label :key_auth
-      s.immed :tem_ubyte, authz
-      s.stack
-      s.extra 8
+      s.data :tem_ubyte, authz
+      s.stack 4
     end
     id_string = execute post_sec
     return read_tem_ubyte(id_string, 0)

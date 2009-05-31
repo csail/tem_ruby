@@ -2,8 +2,8 @@ require 'yaml'
 
 module Tem::SeClosures
   module MixedMethods
-    def assemble(&sec_block)
-      return Tem::SecAssembler.new(self).assemble(&sec_block)
+    def assemble(&block)
+      return Tem::Assembler.assemble(&block)
     end
   end
   
@@ -53,9 +53,13 @@ module Tem::SeClosures
         # there is an exception, try to collect the trace
         b_stat = stat_buffers() rescue nil
         k_stat = stat_keys() rescue nil
-        trace = sec_trace()        
-        backtrace = (trace && trace[:ip]) ? secpack.stack_for_ip(trace[:ip]) : Kernel.caller
-        sec_exception = Tem::SecExecError.new backtrace, trace, b_stat, k_stat
+        trace = sec_trace()
+        if trace and trace[:ip]
+          line_info = secpack.line_info_for_ip(trace[:ip])
+        else
+          line_info = [0, :unknown, Kernel.caller]
+        end
+        sec_exception = Tem::SecExecError.new line_info, trace, b_stat, k_stat
         break
       when 4 # persistent store fault
         solve_psfault

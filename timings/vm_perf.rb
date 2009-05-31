@@ -116,24 +116,23 @@ class TemTimings
       s.halt
       
       s.label :cmp_lo
-      s.immed :ubyte, [0xA3, 0x2C, 0x51, 0x63, 0x2C, 0x12]
+      s.data :tem_ubyte, [0xA3, 0x2C, 0x51, 0x63, 0x2C, 0x12]
       s.label :cmp_med
-      s.immed :ubyte, [0xA3, 0x2C, 0x51, 0x63, 0x2D, 0x11]
+      s.data :tem_ubyte, [0xA3, 0x2C, 0x51, 0x63, 0x2D, 0x11]
       s.label :cmp_hi
-      s.immed :ubyte, [0xA3, 0x2C, 0x51, 0x63, 0x2E, 0x10]
+      s.data :tem_ubyte, [0xA3, 0x2C, 0x51, 0x63, 0x2E, 0x10]
       s.label :cmp_hi2
-      s.immed :ubyte, [0xA3, 0x2C, 0x51, 0x63, 0x2E, 0x10]
+      s.data :tem_ubyte, [0xA3, 0x2C, 0x51, 0x63, 0x2E, 0x10]
       s.label :copy_buf
-      s.filler :ubyte, 6
+      s.zeros :tem_ubyte, 6
       s.label :copy_buf2
-      s.filler :ubyte, 4      
+      s.zeros :tem_ubyte, 4      
       s.label :clobber
-      s.filler :ubyte, 2
+      s.zeros :tem_ubyte, 2
       s.label :clobber2
-      s.filler :ubyte, 2
+      s.zeros :tem_ubyte, 2
       s.label :stack
-      s.stack      
-      s.extra 24
+      s.stack 12
     }
     print "SECpack has #{secpack.body.length} bytes, runs 1020 instructions and produces 470 bytes\n"
     do_timing { @tem.execute secpack }

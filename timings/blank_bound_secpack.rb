@@ -5,16 +5,14 @@ class TemTimings
       s.outnew
       s.halt
       s.label :secret
-      s.filler :ubyte, 50
+      s.zeros :tem_ubyte, 50
       s.label :plain
-      s.filler :ubyte, 220
-      s.stack
-      s.extra 2
+      s.zeros :tem_ubyte, 220
+      s.stack 1
     }
     secpack.bind @tem.pubek, :secret, :plain
 
     print "SECpack has #{secpack.body.length} bytes, runs 3 instructions and produces 0 bytes\n"
     do_timing { @tem.execute secpack }
-    
   end
 end

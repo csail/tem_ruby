@@ -1,12 +1,13 @@
 require 'yaml'
 
 class Tem::SecPack
-  @@serialized_members = [:body, :labels, :ep, :sp, :extra_bytes, :signed_bytes, :encrypted_bytes, :bound, :lines]
-  
+  @@serialized_ivars = [:body, :labels, :ep, :sp, :extra_bytes, :signed_bytes,
+                        :encrypted_bytes, :bound, :lines]    
+ 
   def self.new_from_array(array)
-    arg_hash = { :tem_class => Tem::Session }
-    @@serialized_members.each_index { |i| arg_hash[@@serialized_members[i]] = array[i] }
-    self.new(arg_hash)
+    arg_hash = { }
+    @@serialized_ivars.each_with_index { |name, i| arg_hash[name] = array[i] }
+    self.new arg_hash
   end
   
   def self.new_from_yaml_str(yaml_str)
@@ -15,7 +16,7 @@ class Tem::SecPack
   end
 
   def to_array
-    @@serialized_members.map { |m| self.instance_variable_get('@' + m.to_s) }
+    @@serialized_ivars.map { |m| self.instance_variable_get :"@#{m}" }
   end
   
   def to_yaml_str
@@ -25,32 +26,41 @@ class Tem::SecPack
   attr_reader :body, :bound
   attr_reader :lines
   
+  def trim_extra_bytes
+    @extra_bytes = 0
+    while @extra_bytes < @body.length
+      break if @body[-@extra_bytes - 1] != 0
+      @extra_bytes += 1
+    end
+    @body.slice! @body.length - @extra_bytes, @extra_bytes    
+  end
+  
+  def expand_extra_bytes
+    @body += [0] * @extra_bytes
+    @extra_bytes = 0
+  end
+  
   def initialize(args)
-    @tem_klass = args[:tem_class]
-    @@serialized_members.map { |m| self.instance_variable_set "@#{m}", args[m] }
+    @@serialized_ivars.map { |m| self.instance_variable_set :"@#{m}", args[m] }
     @bound ||= false
+    
+    @extra_bytes ||= 0
+    # trim_extra_bytes if @extra_bytes == 0
   end
   
   def label_address(label_name)
     @labels[label_name.to_sym]
   end
-  
-  def tem_header
-    # TODO: use 0x0100 (no tracing) depending on options
-    hh = [0x0101, @signed_bytes || 0, @encrypted_bytes || 0, @extra_bytes, @sp,
-          @ep].map { |n| @tem_klass.to_tem_ushort n }.flatten
-    hh += Array.new((@tem_klass.tem_hash [0]).length - hh.length, 0)
-    return hh
-  end
-  
+    
   def bind(public_key, encrypt_from = 0, plaintext_from = 0)
-    encrypt_from = @labels[encrypt_from.to_sym] unless encrypt_from.instance_of? Numeric
-    plaintext_from = @labels[plaintext_from.to_sym] unless plaintext_from.instance_of? Numeric
+    expand_extra_bytes
+    encrypt_from = @labels[encrypt_from.to_sym] unless encrypt_from.kind_of? Numeric
+    plaintext_from = @labels[plaintext_from.to_sym] unless plaintext_from.kind_of? Numeric
     
     @signed_bytes = encrypt_from
     @encrypted_bytes = plaintext_from - encrypt_from
     
-    secpack_sig = @tem_klass.tem_hash [tem_header, @body[0...plaintext_from]].flatten
+    secpack_sig = Tem::Abi.tem_hash [tem_header, @body[0...plaintext_from]].flatten
     crypt = public_key.encrypt [@body[encrypt_from...plaintext_from], secpack_sig].flatten
     @body = [@body[0...encrypt_from], crypt, @body[plaintext_from..-1]].flatten
       
@@ -65,23 +75,33 @@ class Tem::SecPack
       end
     }.flatten)]
     
+    #trim_extra_bytes
     @bound = true
   end
   
-  def tem_formatted_body()
-    return [tem_header, @body].flatten 
+  def tem_header
+    # TODO: use 0x0100 (no tracing) depending on options
+    hh = [0x0101, @signed_bytes || 0, @encrypted_bytes || 0, @extra_bytes, @sp,
+          @ep].map { |n| Tem::Abi.to_tem_ushort n }.flatten
+    hh += Array.new((Tem::Abi.tem_hash [0]).length - hh.length, 0)
+    return hh
+  end
+  private :tem_header
+  
+  def tem_formatted_body
+    # HACK: Ideally, we would allocate a bigger buffer, and then only fill part
+    #       of it. Realistically, we'll just send in extra_bytes 0s.
+    [tem_header, @body, [0] * @extra_bytes].flatten
   end
   
-  def stack_for_ip(ip)
+  def line_info_for_ip(ip)
     return nil unless @lines
 
-    max_value = -1
-    st = nil
-    @lines.each do |st_ip, stack|
-      # if something breaks, it's likely to happen after the opcode
-      # of the offending instruction has been read, so assume offending_ip < ip
-      max_value, st = st_ip, stack if st_ip < ip && max_value < st_ip
+    @lines.reverse_each do |info|
+      # If something breaks, it's likely to happen after the opcode of the 
+      # offending instruction has been read, so assume offending_ip < ip.
+      return info if ip >= info[0]
     end
-    return st
+    return info.first
   end
 end

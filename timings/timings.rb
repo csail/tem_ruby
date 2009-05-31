@@ -44,16 +44,21 @@ class TemTimings
   end
   
   def self.all_timings
+    timings = {}
     t = TemTimings.new
     t.setup
     t.methods.select { |m| m =~ /time_/ }.each do |m|
       print "Timing: #{m[5..-1]}...\n"
-      t.send m.to_sym
+      timings[m] = t.send m.to_sym
     end
     t.teardown
+    timings
   end
 end
 
 if __FILE__ == $0
-  TemTimings.all_timings
+  timings = TemTimings.all_timings
+  timings.map { |k, v| [k.to_s, v] }.sort.each do |timing|
+    print "#{timing.first}: #{'%.5f' % timing.last}s\n"
+  end
 end

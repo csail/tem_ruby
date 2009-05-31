@@ -1,30 +1,30 @@
 require 'openssl'
 
 module Tem::ECert
-  # writes an Endorsement Certificate to the TEM's tag
+  # Writes an Endorsement Certificate to the TEM's tag.
   def set_ecert(ecert)
     set_tag ecert.to_der.unpack('C*')
   end
   
-  # retrieves the TEM's Endorsement Certificate
+  # Retrieves the TEM's Endorsement Certificate.
   def endorsement_cert
     OpenSSL::X509::Certificate.new get_tag[2..-1].pack('C*')
   end
   
-  # retrieves the certificate of the TEM's Manfacturer (CA)
+  # Retrieves the certificate of the TEM's Manfacturer (CA).
   def manufacturer_cert
     Tem::CA.ca_cert
   end
   
-  # retrieves the TEM's Public Endorsement Key
+  # Retrieves the TEM's Public Endorsement Key.
   def pubek
     Tem::Key.new_from_ssl_key endorsement_cert.public_key
   end
   
-  # emits a TEM
+  # Drives a TEM though the emitting process.
   def emit
     emit_sec = assemble do |s|
-      # generate EK, compare with (0, 1)
+      # Generate Endorsement Key pair, should end up in slots (0, 1).
       s.genkp :type => 0
       s.ldbc 1
       s.sub
@@ -33,7 +33,7 @@ module Tem::ECert
       s.sub
       s.jne :to => :not_ok
       
-      # generate and output random authorization for PrivEK
+      # Generate and output random authorization for PrivEK.
       s.ldbc 20
       s.dupn :n => 1
       s.outnew
@@ -41,25 +41,24 @@ module Tem::ECert
       s.dupn :n => 2
       s.rnd
       s.outvb
-      # set authorizations for PrivEK and PubkEK
+      # Set authorizations for PrivEK and PubkEK.
       s.ldbc 0
       s.authk :auth => :privek_auth
-      s.ldbc 1 # PubEK always has its initial authorization be all zeroes
+      s.ldbc 1 # PubEK always has its initial authorization be all zeroes.
       s.authk :auth => :pubek_auth
       s.halt
       
-      # emitting didn't go well, return nothing and leave
+      # Emitting didn't go well, return nothing and leave.
       s.label :not_ok
       s.ldbc 0
       s.outnew
       s.halt
       
       s.label :privek_auth
-      s.filler :tem_ubyte, 20
+      s.zeros :tem_ubyte, 20
       s.label :pubek_auth
-      s.filler :tem_ubyte, 20
-      s.stack
-      s.extra 8
+      s.zeros :tem_ubyte, 20
+      s.stack 4
     end
     
     r = execute emit_sec
@@ -74,5 +73,5 @@ module Tem::ECert
       set_ecert ecert
       return { :privek_auth => privk_auth }
     end
-  end  
+  end
 end

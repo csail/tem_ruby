@@ -4,7 +4,7 @@ require 'openssl'
 # :nodoc: namespace
 module Tem::Builders  
 
-# Builder class and namespace for the ABI (Abstract Binary Interface) builder.
+# Builder class for the ABI (Abstract Binary Interface) builder.
 class Abi
   # Creates a builder targeting a module / class.
   #

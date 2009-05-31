@@ -14,8 +14,7 @@ class ExceptionsTest < TemTestCase
       s.label :bad_code 
       s.halt
       s.label :stack
-      s.stack
-      s.extra 10
+      s.stack 5
     }
     assert_raise(Tem::SecExecError) { @tem.execute bad_sec }
 

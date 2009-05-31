@@ -4,9 +4,8 @@ class TemTimings
       s.ldbc 0
       s.outnew
       s.halt
-      s.filler :ubyte, 70
-      s.stack
-      s.extra 2
+      s.zeros :tem_ubyte, 70
+      s.stack 1
     }
 
     print "SECpack has #{secpack.body.length} bytes, runs 3 instructions and produces 0 bytes\n"

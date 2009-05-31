@@ -1,14 +1,23 @@
 # raised when executing a SEC 
 class Tem::SecExecError < StandardError
+  attr_reader :line_info
   attr_reader :buffer_state, :key_state
   attr_reader :trace
   
-  def initialize(backtrace, tem_trace, buffer_state, key_state)
+  def initialize(line_info, tem_trace, buffer_state, key_state)
     super 'SEC execution failed on the TEM'
-    set_backtrace backtrace
+    @line_info = line_info
+    line_ip, atom, backtrace = *line_info
+    @atom = atom
+    if tem_trace and tem_trace[:ip]
+      @ip_delta = tem_trace[:ip] - line_ip
+    else
+      @ip_delta = 0
+    end
     @trace = tem_trace
     @buffer_state = buffer_state
     @key_state = key_state
+    set_backtrace backtrace
   end
   
   def bstat_str
@@ -36,7 +45,16 @@ class Tem::SecExecError < StandardError
   end
   
   def to_s
-    "SECpack execution generated an exception on the TEM\nTEM Trace: " + trace_str + "\nTEM Buffer Status:\n" + bstat_str + "\nTEM Key Status:\n" + kstat_str
+    string = <<ENDSTRING
+SECpack execution generated an exception on the TEM
+
+TEM Trace: #{trace_str}
+TEM Buffer Status:#{bstat_str}
+TEM Key Status:#{kstat_str}
+
+TEM execution error at #{@atom}+#{@ip_delta}
+ENDSTRING
+    string.strip
   end
   
   def inspect

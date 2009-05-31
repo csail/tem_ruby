@@ -30,14 +30,22 @@ module JcopRemoteProtocol
   def recv_message(socket)
     header = ''
     while header.length < 4
-      partial = socket.recv 4 - header.length
+      begin
+        partial = socket.recv 4 - header.length
+      rescue  # Abrupt hangups result in exceptions that we catch here.        
+        return nil
+      end
       return false if partial.length == 0
       header += partial
     end
     message_type, node_address, data_length = *header.unpack('CCn')
     raw_data = ''
     while raw_data.length < data_length
-      partial = socket.recv data_length - raw_data.length
+      begin
+        partial = socket.recv data_length - raw_data.length
+      rescue  # Abrupt hangups result in exceptions that we catch here.
+        return nil
+      end
       return false if partial.length == 0
       raw_data += partial
     end

@@ -41,8 +41,7 @@ module Buffers
     
     chunk_id, offset = 0, 0
     while offset < data.length do
-      write_size = (data.length - offset < @buffer_chunk_size) ?
-          data.length - offset : @buffer_chunk_size
+      write_size = [data.length - offset, @buffer_chunk_size].min
       @transport.applet_apdu! :ins => 0x24, :p1 => buffer_id, :p2 => chunk_id,
                               :data => data[offset, write_size]
       chunk_id += 1

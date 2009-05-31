@@ -2,7 +2,7 @@
 
 Gem::Specification.new do |s|
   s.name = %q{tem_ruby}
-  s.version = "0.11"
+  s.version = "0.11.1"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 1.2") if s.respond_to? :required_rubygems_version=
   s.authors = ["Victor Costan"]
@@ -16,7 +16,7 @@ Gem::Specification.new do |s|
   s.rdoc_options = ["--line-numbers", "--inline-source", "--title", "Tem_ruby", "--main", "README"]
   s.require_paths = ["lib"]
   s.rubyforge_project = %q{tem}
-  s.rubygems_version = %q{1.3.3}
+  s.rubygems_version = %q{1.3.4}
   s.summary = %q{TEM (Trusted Execution Module) driver, written in and for ruby.}
   s.test_files = ["test/builders/test_abi_builder.rb", "test/tem_unit/test_tem_alu.rb", "test/tem_unit/test_tem_bound_secpack.rb", "test/tem_unit/test_tem_branching.rb", "test/tem_unit/test_tem_crypto_asymmetric.rb", "test/tem_unit/test_tem_crypto_hash.rb", "test/tem_unit/test_tem_crypto_pstore.rb", "test/tem_unit/test_tem_crypto_random.rb", "test/tem_unit/test_tem_emit.rb", "test/tem_unit/test_tem_memory.rb", "test/tem_unit/test_tem_memory_compare.rb", "test/tem_unit/test_tem_output.rb", "test/tem_unit/test_tem_yaml_secpack.rb", "test/test_driver.rb", "test/test_exceptions.rb", "test/transport/test_auto_configurator.rb", "test/transport/test_java_card_mixin.rb", "test/transport/test_jcop_remote.rb"]
 

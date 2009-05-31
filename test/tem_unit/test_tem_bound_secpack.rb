@@ -42,8 +42,18 @@ module TemBoundSecpackTestCase
     assert_equal 0, bound_sec.get_value(:plain, :tem_ushort),
                  'SecPack plaintext corrupted during binding'
 
-    bound_sec.set_value :mess_place, :tem_ubyte,
-                        bound_sec.get_value(:mess_place, :tem_ubyte) + 1
+    # HACK: cheating knowing that yaml_roundtrip will be false and true to
+    #       test both set_value/get_value and set_bytes/get_bytes
+    if yaml_roundtrip
+      bound_sec.set_value :mess_place, :tem_ubyte,
+                          bound_sec.get_value(:mess_place, :tem_ubyte) + 1
+    else
+      bytes = bound_sec.get_bytes(:mess_place, 4)
+      bytes[0] += 1
+      assert_equal 4, bytes.length, "get_bytes didn't find 4 bytes to mess with"
+      bound_sec.set_bytes :mess_place, bytes      
+    end
+  
     assert_raise(RuntimeError, "secpack validation isn't working") do
       @tem.execute bound_sec
     end

@@ -5,6 +5,7 @@ module Tem::Isa
     isa.instruction 0x10, :add
     # 2 ST -> 1 ST
     isa.instruction 0x11, :sub
+    isa.instruction 0x11, :cmp
     # 2 ST -> 1 ST
     isa.instruction 0x12, :mul
     # 2 ST -> 1 ST

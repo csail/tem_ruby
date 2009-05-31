@@ -14,7 +14,7 @@ class TemBranchingTest < TemTestCase
       s.dupn :n => 1
       s.outb
       s.ldbc 1
-      s.sub
+      s.cmp
       s.dupn :n=> 1
       s.jae :to => :test_loop
 

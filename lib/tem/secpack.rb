@@ -111,14 +111,25 @@ class Tem::SecPack
     end
   end
   
-  # Methods for interacting with the plaintext content of a SECpack. 
-    
-  def set_value(label, abi_type, value)
+  # Methods for interacting with the plaintext content of a SECpack.
+ 
+  def get_bytes(label, byte_count)
     expand_extra_bytes
     raise "Unknown label #{label}" unless addr = @labels[label]
-    bytes = Tem::Abi.send :"to_#{abi_type}", value
+    bytes = @body[addr, byte_count]
+    #trim_extra_bytes
+    bytes
+  end
+  
+  def set_bytes(label, bytes)
+    expand_extra_bytes
+    raise "Unknown label #{label}" unless addr = @labels[label]
     @body[addr, bytes.length] = bytes
     #trim_extra_bytes
+  end
+  
+  def set_value(label, abi_type, value)
+    set_bytes label, Tem::Abi.send(:"to_#{abi_type}", value)
   end
   
   def get_value(label, abi_type)

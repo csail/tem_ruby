@@ -1,3 +1,5 @@
+v0.11.2. tem_proxy improvement: exit if transport auto-configuration fails.
+
 v0.11.1. Added cmp (synonim for sub) to the ISA definition.
 
 v0.11. Procedure calls (fw 1.11) and improved TEM exception information dump.

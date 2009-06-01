@@ -2,11 +2,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{tem_ruby}
-  s.version = "0.11.1"
+  s.version = "0.11.2"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 1.2") if s.respond_to? :required_rubygems_version=
   s.authors = ["Victor Costan"]
-  s.date = %q{2009-05-31}
+  s.date = %q{2009-06-01}
   s.description = %q{TEM (Trusted Execution Module) driver, written in and for ruby.}
   s.email = %q{victor@costan.us}
   s.executables = ["tem_bench", "tem_ca", "tem_irb", "tem_proxy", "tem_stat"]

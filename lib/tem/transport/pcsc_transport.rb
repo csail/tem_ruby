@@ -24,7 +24,7 @@ class PcscTransport
     @context = PCSC::Context.new(PCSC::SCOPE_SYSTEM) if @context.nil?
     
     if @options[:reader_name]
-      @reader_name = reader_name
+      @reader_name = @options[:reader_name]
     else
       # get the first reader      
       readers = @context.list_readers nil

@@ -48,6 +48,10 @@ def serve(options)
   @logger.level = options[:logging] ? Logger::DEBUG : Logger::FATAL
 
   serving_transport = Tem::Transport.auto_transport
+  unless serving_transport
+    @logger.error "Transport auto-configuration failed"
+    return
+  end
   @logger.info "Proxying to #{serving_transport.inspect}\n"
   @logger.info "Serving with #{options.inspect}\n"
   serving_logic = ServingLogic.new serving_transport, options[:logging]

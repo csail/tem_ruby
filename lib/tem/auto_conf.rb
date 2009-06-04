@@ -9,6 +9,12 @@ module Tem
   def self.auto_conf
     return $tem if $tem
     $tem = auto_tem
+    class << $tem
+      def disconnect
+        $tem = nil
+        super
+      end
+    end
   end
 
   # Creates a new session to a TEM, using an automatically-configured transport.

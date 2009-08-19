@@ -10,7 +10,7 @@ Echoe.new('tem_ruby') do |p|
   p.email = 'victor@costan.us'
   p.summary = 'TEM (Trusted Execution Module) driver, written in and for ruby.'
   p.url = 'http://tem.rubyforge.org'
-  p.dependencies = ['smartcard >=0.3.0']
+  p.dependencies = ['smartcard >=0.4.0']
   
   p.need_tar_gz = !Platform.windows?
   p.need_zip = !Platform.windows?

@@ -1,6 +1,7 @@
+require 'tem_ruby'
+
 require 'test/unit'
 
-require 'tem_ruby'
 
 # Helper methods for TEM tests.
 #
@@ -16,7 +17,7 @@ class TemTestCase < Test::Unit::TestCase
   end
   
   def teardown
-    @tem.disconnect unless @tem.nil?
+    @tem.disconnect if defined?(@tem) && @tem
   end
   
   def test_smoke

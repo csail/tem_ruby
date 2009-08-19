@@ -1,4 +1,5 @@
-require 'test/tem_test_case'
+require 'test/tem_test_case.rb'
+
 
 class ExceptionsTest < TemTestCase
   def test_trace
@@ -23,12 +24,17 @@ class ExceptionsTest < TemTestCase
       @tem.execute bad_sec
     rescue Tem::SecExecError => e
       caught = true
-      assert_equal Hash, e.trace.class, "TEM exception does not have a TEM trace"
+      assert_equal Hash, e.trace.class,
+                   "TEM exception does not have a TEM trace"
       assert_equal 2, e.trace[:out], "Bad output buffer position in TEM trace"
-      assert_equal bad_sec.label_address(:bad_code), e.trace[:ip], "Bad instruction pointer in TEM trace"
-      assert_equal bad_sec.label_address(:stack), e.trace[:sp], "Bad instruction pointer in TEM trace"
-      assert_equal Hash, e.buffer_state.class, "TEM exception does not have buffer state information"
-      assert_equal Hash, e.key_state.class, "TEM exception does not have key state information"
+      assert_equal bad_sec.label_address(:bad_code), e.trace[:ip],
+                   "Bad instruction pointer in TEM trace"
+      assert_equal bad_sec.label_address(:stack), e.trace[:sp],
+                   "Bad instruction pointer in TEM trace"
+      assert_equal Hash, e.buffer_state.class,
+                   "TEM exception does not have buffer state information"
+      assert_equal Hash, e.key_state.class,
+                   "TEM exception does not have key state information"
     end
     assert caught, "Executing a bad SECpack did not raise a SecExecError"
   end  

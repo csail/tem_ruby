@@ -1,3 +1,13 @@
+# The TEM's ISA (Instruction Set Architecture) definition.
+#
+# This code is the official specification, because Victor likes executable
+# specifications.
+#
+# Author:: Victor Costan
+# Copyright:: Copyright (C) 2007 Massachusetts Institute of Technology
+# License:: MIT
+
+
 module Tem::Isa
   Tem::Builders::Isa.define_isa self, Tem::Abi,
                                 :opcode_type => :tem_ubyte do |isa|

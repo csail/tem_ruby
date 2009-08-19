@@ -1,4 +1,4 @@
-require 'test/tem_test_case'
+require 'test/tem_test_case.rb'
 
 class TemAluTest < TemTestCase
   def test_alu

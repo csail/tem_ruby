@@ -1,7 +1,8 @@
-require 'test/tem_test_case'
+require 'test/tem_test_case.rb'
 
-require 'test/tem_unit/test_tem_bound_secpack'
-require 'test/tem_unit/test_tem_memory_compare'
+require 'test/tem_unit/test_tem_bound_secpack.rb'
+require 'test/tem_unit/test_tem_memory_compare.rb'
+
 
 class TemOutputTest < TemTestCase
   include TemBoundSecpackTestCase

@@ -14,7 +14,7 @@ module Tem::SeClosures
   
   def sec_trace
     #begin      
-      trace = @transport.applet_apdu! :ins => 0x54
+      trace = @transport.iso_apdu! :ins => 0x54
       if trace.length > 2
         case read_tem_short(trace, 0) # trace version
         when 1
@@ -31,20 +31,20 @@ module Tem::SeClosures
   def solve_psfault
     # TODO: better strategy, lol
     next_cell = rand(16)
-    @transport.applet_apdu! :ins => 0x53, :p12 => to_tem_ushort(next_cell)
+    @transport.iso_apdu! :ins => 0x53, :p12 => to_tem_ushort(next_cell)
   end
   
   def execute(secpack, key_id = 0)
     # load SECpack
     buffer_id = post_buffer(secpack.tem_formatted_body)
-    response = @transport.applet_apdu! :ins => 0x50, :p1 => buffer_id,
+    response = @transport.iso_apdu! :ins => 0x50, :p1 => buffer_id,
                                                      :p2 => key_id
     tem_secpack_error(response) if read_tem_byte(response, 0) != 1
     
     # execute SEC
     sec_exception = nil
     loop do 
-      response = @transport.applet_apdu! :ins => 0x52
+      response = @transport.iso_apdu! :ins => 0x52
       sec_status = read_tem_byte(response, 0)
       case sec_status
       when 2 # success
@@ -64,7 +64,7 @@ module Tem::SeClosures
     end
   
     # unbind SEC
-    response = @transport.applet_apdu! :ins => 0x51
+    response = @transport.iso_apdu! :ins => 0x51
     raise sec_exception if sec_exception
     buffer_id = read_tem_byte(response, 0)
     buffer_length = read_tem_short(response, 1)

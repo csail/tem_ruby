@@ -1,3 +1,5 @@
+v0.11.4. Removed Ruby warnings. Updated for smartcard API 0.4.
+
 v0.11.3. Autoconf improvement: $tem becomes nil if $tem.disconnect is called.
 
 v0.11.2. tem_proxy improvement: exit if transport auto-configuration fails.

@@ -1,8 +1,14 @@
-require 'openssl'
+# ISA (Instruction Set Architeture) builder.
+#
+# Author:: Victor Costan
+# Copyright:: Copyright (C) 2009 Massachusetts Institute of Technology
+# License:: MIT
 
+require 'openssl'
 
 # :nodoc: namespace
 module Tem::Builders  
+
 
 # Builder class for the ISA (Instruction Set Architecture) builder.
 class Isa
@@ -82,7 +88,7 @@ class Isa
         emit = encoded_opcode
         link_directives = []
         fargs.each_with_index do |arg, i|
-          if (arg.kind_of? Numeric) && !arg[:reladdr]
+          if arg.kind_of?(Numeric) && !iargs[i][:reladdr]
             emit += abi.send arg_encode_msgs[i], arg
           else
             link_directive = { :type => iargs[i][:type], :offset => emit.length,
@@ -100,8 +106,8 @@ class Isa
       end
     end
     
-    @target.class_eval &defines
-    (class << @target; self; end).module_eval &defines
+    @target.class_eval(&defines)
+    (class << @target; self; end).module_eval(&defines)
   end  
   
   # The module / class impacted by the builder.

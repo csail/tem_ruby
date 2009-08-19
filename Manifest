@@ -40,13 +40,6 @@ lib/tem/seclosures.rb
 lib/tem/secpack.rb
 lib/tem/tem.rb
 lib/tem/toolkit.rb
-lib/tem/transport/auto_configurator.rb
-lib/tem/transport/java_card_mixin.rb
-lib/tem/transport/jcop_remote_protocol.rb
-lib/tem/transport/jcop_remote_server.rb
-lib/tem/transport/jcop_remote_transport.rb
-lib/tem/transport/pcsc_transport.rb
-lib/tem/transport/transport.rb
 lib/tem_ruby.rb
 LICENSE
 Manifest
@@ -67,8 +60,6 @@ test/tem_unit/test_tem_memory.rb
 test/tem_unit/test_tem_memory_compare.rb
 test/tem_unit/test_tem_output.rb
 test/tem_unit/test_tem_yaml_secpack.rb
+test/test_auto_conf.rb
 test/test_driver.rb
 test/test_exceptions.rb
-test/transport/test_auto_configurator.rb
-test/transport/test_java_card_mixin.rb
-test/transport/test_jcop_remote.rb

@@ -1,3 +1,15 @@
+# Benchmarks the TEM hardware's decryption facility. 
+#
+# This is the chip's native decryption speed. The difference between this time
+# and the time it takes to decrypt a bound SECpack is overhead added by the TEM
+# firmware. That overhead should be kept to a minimum.  
+#
+# Author:: Victor Costan
+# Copyright:: Copyright (C) 2008 Massachusetts Institute of Technology
+# License:: MIT
+
+
+# :nodoc:
 class Tem::Benchmarks
   def time_devchip_decrypt
     pubek = @tem.pubek

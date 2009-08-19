@@ -1,8 +1,14 @@
-require 'openssl'
+# Cryptography ABI builder.
+#
+# Author:: Victor Costan
+# Copyright:: Copyright (C) 2009 Massachusetts Institute of Technology
+# License:: MIT
 
+require 'openssl'
 
 # :nodoc: namespace
 module Tem::Builders  
+
 
 # Builder class and namespace for the cryptography builder.
 class Crypto < Abi
@@ -100,8 +106,8 @@ class Crypto < Abi
       define_method(:"#{name}_length") { digest_length }
     end
     
-    @target.class_eval &defines
-    (class << @target; self; end).module_eval &defines    
+    @target.class_eval(&defines)
+    (class << @target; self; end).module_eval(&defines)    
   end
 end  # class Crypto
 

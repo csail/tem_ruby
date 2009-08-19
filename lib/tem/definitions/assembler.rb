@@ -1,3 +1,13 @@
+# The TEM's assembly language definition.
+#
+# This code is the official specification, because Victor likes executable
+# specifications.
+#
+# Author:: Victor Costan
+# Copyright:: Copyright (C) 2007 Massachusetts Institute of Technology
+# License:: MIT
+
+
 class Tem::Assembler
   Tem::Builders::Assembler.define_assembler self do |assembler|
     assembler.target_isa Tem::Isa

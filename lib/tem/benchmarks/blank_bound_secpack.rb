@@ -1,3 +1,13 @@
+# Benchmarks decrypting a bound SECpack. 
+#
+# This is a lower bound on the time it takes to execute any bound SECpack.
+#
+# Author:: Victor Costan
+# Copyright:: Copyright (C) 2008 Massachusetts Institute of Technology
+# License:: MIT
+
+
+# :nodoc:
 class Tem::Benchmarks
   def time_blank_bound_secpack
     secpack = @tem.assemble { |s|

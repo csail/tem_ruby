@@ -1,4 +1,4 @@
-require 'test/tem_test_case'
+require 'test/tem_test_case.rb'
 
 class TemMemoryTest < TemTestCase
   def test_memory

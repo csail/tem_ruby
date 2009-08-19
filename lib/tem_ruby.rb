@@ -6,18 +6,6 @@ require 'smartcard'
 module Tem
 end
 
-# :nodoc:
-module Tem::Transport
-end
-
-require 'tem/transport/transport.rb'
-require 'tem/transport/java_card_mixin.rb'
-require 'tem/transport/pcsc_transport.rb'
-require 'tem/transport/jcop_remote_protocol.rb'
-require 'tem/transport/jcop_remote_transport.rb'
-require 'tem/transport/jcop_remote_server.rb'
-require 'tem/transport/auto_configurator.rb'
-
 require 'tem/keys/key.rb'
 require 'tem/keys/asymmetric.rb'
 require 'tem/keys/symmetric.rb'

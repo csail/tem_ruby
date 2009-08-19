@@ -1,20 +1,26 @@
+# TEM cryptographic key manipulation using the APDU API. 
+#
+# Author:: Victor Costan
+# Copyright:: Copyright (C) 2007 Massachusetts Institute of Technology
+# License:: MIT
+
 # :nodoc: namespace
 module Tem::Apdus
   
 module Keys
   def devchip_generate_key_pair
-    response = @transport.applet_apdu! :ins => 0x40
+    response = @transport.iso_apdu! :ins => 0x40
     return { :privkey_id => read_tem_byte(response, 0),
              :pubkey_id => read_tem_byte(response, 1) }    
   end
   
   def devchip_release_key(key_id)
-    @transport.applet_apdu! :ins => 0x41, :p1 => key_id
+    @transport.iso_apdu! :ins => 0x41, :p1 => key_id
     return true
   end
   
   def devchip_save_key(key_id)
-    response = @transport.applet_apdu! :ins => 0x43, :p1 => key_id
+    response = @transport.iso_apdu! :ins => 0x43, :p1 => key_id
     buffer_id = read_tem_byte response, 0 
     buffer_length = read_tem_short response, 1
     key_buffer = read_buffer buffer_id
@@ -26,7 +32,7 @@ module Keys
   def devchip_encrypt_decrypt(data, key_id, opcode)
     buffer_id = post_buffer data
     begin
-      response = @transport.applet_apdu! :ins => opcode, :p1 => key_id,
+      response = @transport.iso_apdu! :ins => opcode, :p1 => key_id,
                                          :p2 => buffer_id
     ensure
       release_buffer buffer_id
@@ -47,7 +53,7 @@ module Keys
   end
   
   def stat_keys
-    response = @transport.applet_apdu! :ins => 0x27, :p1 => 0x01
+    response = @transport.iso_apdu! :ins => 0x27, :p1 => 0x01
     key_types = { 0x99 => :symmetric, 0x55 => :private, 0xAA => :public }
     stat = {:keys => {}}
     offset = 0

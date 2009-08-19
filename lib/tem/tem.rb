@@ -16,7 +16,8 @@ class Tem::Session
   
   def initialize(transport)
     @transport = transport
-    @transport.select_applet CAPPLET_AID
+    @transport.extend Smartcard::Gp::GpCardMixin
+    @transport.select_application CAPPLET_AID
   end
   
   def disconnect

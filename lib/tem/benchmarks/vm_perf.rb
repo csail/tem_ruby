@@ -1,3 +1,14 @@
+# Benchmarks the TEM virtual machine's execution speed.
+#
+# The difference between this time and the time it takes to execute a blank
+# SECpack is pure VM execution time.
+#
+# Author:: Victor Costan
+# Copyright:: Copyright (C) 2008 Massachusetts Institute of Technology
+# License:: MIT
+
+
+# :nodoc:
 class Tem::Benchmarks
   def time_vm_perf
     secpack = @tem.assemble { |s|

@@ -1,8 +1,14 @@
-require 'openssl'
+# ABI (Abstract Binary Interface) builder.
+#
+# Author:: Victor Costan
+# Copyright:: Copyright (C) 2009 Massachusetts Institute of Technology
+# License:: MIT
 
+require 'openssl'
 
 # :nodoc: namespace
 module Tem::Builders  
+
 
 # Builder class for the ABI (Abstract Binary Interface) builder.
 class Abi
@@ -44,8 +50,8 @@ class Abi
       define_method(:"#{name}_length") { bytes }
     end
     
-    @target.class_eval &defines
-    (class << @target; self; end).module_eval &defines
+    @target.class_eval(&defines)
+    (class << @target; self; end).module_eval(&defines)
   end
   
   # Defines the methods for handling a variable-length number type in an ABI.
@@ -86,8 +92,8 @@ class Abi
       end
     end
     
-    @target.class_eval &defines
-    (class << @target; self; end).module_eval &defines    
+    @target.class_eval(&defines)
+    (class << @target; self; end).module_eval(&defines)    
   end
   
   # Defines the methods for handling a group of packed variable-length numbers
@@ -160,8 +166,8 @@ class Abi
       define_method(:"#{name}_components") { sub_names }
     end
     
-    @target.class_eval &defines
-    (class << @target; self; end).module_eval &defines    
+    @target.class_eval(&defines)
+    (class << @target; self; end).module_eval(&defines)    
   end
   
   # Defines the methods for handling a fixed-length string type in an ABI.
@@ -190,8 +196,8 @@ class Abi
       define_method(:"#{name}_length") { bytes }
     end
     
-    @target.class_eval &defines
-    (class << @target; self; end).module_eval &defines
+    @target.class_eval(&defines)
+    (class << @target; self; end).module_eval(&defines)
   end
   
   # Defines methods for handling a complex ABI structure wrapped into an object.
@@ -299,9 +305,9 @@ class Abi
       define_method(:"#{name}_tohook", &hooks[:to]) if hooks[:to]      
     end
     
-    @target.class_eval &defines
+    @target.class_eval(&defines)
     @target.class_eval define_str
-    (class << @target; self; end).module_eval &defines
+    (class << @target; self; end).module_eval(&defines)
     (class << @target; self; end).module_eval define_str
   end
   
@@ -351,8 +357,8 @@ class Abi
       define_method(:"#{name}_length") { bytes }
     end
     
-    @target.class_eval &defines
-    (class << @target; self; end).module_eval &defines    
+    @target.class_eval(&defines)
+    (class << @target; self; end).module_eval(&defines)    
   end
   
   # The module / class impacted by the builder.

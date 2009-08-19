@@ -1,3 +1,15 @@
+# Benchmarks the TEM virtual machine's execution speed on bound SECpacks.
+#
+# The difference between this time and the time it takes to execute a blank
+# bound SECpack is pure VM execution time. This execution time should not be
+# significantly different from the execution time for unbound SECpacks.
+#
+# Author:: Victor Costan
+# Copyright:: Copyright (C) 2008 Massachusetts Institute of Technology
+# License:: MIT
+
+
+# :nodoc:
 class Tem::Benchmarks
   def time_vm_perf_bound
     secpack = @tem.assemble { |s|

@@ -10,7 +10,7 @@ require 'tem_ruby'
 
 # JCOP remote serving logic implementing a proxy to another transport. 
 class ServingLogic
-  include Tem::Transport::JcopRemoteServingStubs
+  include Smartcard::Iso::JcopRemoteServingStubs
   def initialize(serving_transport, logging = false)
     @serving = serving_transport
     @logger = Logger.new STDERR
@@ -47,15 +47,15 @@ def serve(options)
   @logger = Logger.new STDERR
   @logger.level = options[:logging] ? Logger::DEBUG : Logger::FATAL
 
-  serving_transport = Tem::Transport.auto_transport
+  serving_transport = Smartcard::Iso.auto_transport
   unless serving_transport
-    @logger.error "Transport auto-configuration failed"
+    @logger.error "ISO7816 smart-card transport auto-configuration failed"
     return
   end
   @logger.info "Proxying to #{serving_transport.inspect}\n"
   @logger.info "Serving with #{options.inspect}\n"
   serving_logic = ServingLogic.new serving_transport, options[:logging]
-  Tem::Transport::JcopRemoteServer.new(options, serving_logic).run
+  Smartcard::Iso::JcopRemoteServer.new(options, serving_logic).run
 end
 
 # Parses the commmand-line arguments into an options hash suitable for #serve.

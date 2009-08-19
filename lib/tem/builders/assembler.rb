@@ -1,5 +1,12 @@
+# Assembler (as in opcode assembler) builder.
+#
+# Author:: Victor Costan
+# Copyright:: Copyright (C) 2009 Massachusetts Institute of Technology
+# License:: MIT
+
 # :nodoc: namespace
 module Tem::Builders  
+
 
 # Builder class for the code assembler builder.
 class Assembler
@@ -56,8 +63,8 @@ class Assembler
         end
       end
     end    
-    @proxy_class.class_eval &proxy_defines
-    (class << @proxy_class; self; end).module_eval &proxy_defines    
+    @proxy_class.class_eval(&proxy_defines)
+    (class << @proxy_class; self; end).module_eval(&proxy_defines)    
   end
   
   # Defines the methods for implementing a labeling directive.
@@ -73,8 +80,8 @@ class Assembler
         @assembler.emit_label label_name.to_sym
       end
     end    
-    @proxy_class.class_eval &proxy_defines
-    (class << @proxy_class; self; end).module_eval &proxy_defines    
+    @proxy_class.class_eval(&proxy_defines)
+    (class << @proxy_class; self; end).module_eval(&proxy_defines)    
   end
   
   # Defines the methods for implementing a special label directive.
@@ -90,8 +97,8 @@ class Assembler
         @assembler.emit_label label_name.to_sym
       end
     end    
-    @proxy_class.class_eval &proxy_defines
-    (class << @proxy_class; self; end).module_eval &proxy_defines
+    @proxy_class.class_eval(&proxy_defines)
+    (class << @proxy_class; self; end).module_eval(&proxy_defines)
   end
 
   # Defines the methods for implementing a zero-inserting directive.
@@ -115,8 +122,8 @@ class Assembler
         @assembler.emit_bytes name, :emit => Array.new(bytes, 0)
       end
     end    
-    @proxy_class.class_eval &proxy_defines
-    (class << @proxy_class; self; end).module_eval &proxy_defines    
+    @proxy_class.class_eval(&proxy_defines)
+    (class << @proxy_class; self; end).module_eval(&proxy_defines)    
   end
     
   # Defines the methods for implementing a data-emitting directive.
@@ -137,8 +144,8 @@ class Assembler
         @assembler.emit_bytes :immed, :emit => data
       end
     end    
-    @proxy_class.class_eval &proxy_defines
-    (class << @proxy_class; self; end).module_eval &proxy_defines    
+    @proxy_class.class_eval(&proxy_defines)
+    (class << @proxy_class; self; end).module_eval(&proxy_defines)    
   end
   
   # (private) Defines the builder class used during assembly.
@@ -194,8 +201,8 @@ class Assembler
         end
       end
     end
-    @proxy_class.class_eval &proxy_defines
-    (class << @proxy_class; self; end).module_eval &proxy_defines    
+    @proxy_class.class_eval(&proxy_defines)
+    (class << @proxy_class; self; end).module_eval(&proxy_defines)    
   end
   private :define_proxy_class
     
@@ -226,8 +233,8 @@ class Assembler
       end
       private :_assemble
     end
-    @target.class_eval &defines
-    (class << @target; self; end).module_eval &defines        
+    @target.class_eval(&defines)
+    (class << @target; self; end).module_eval(&defines)        
   end
   
   # The module / class impacted by the builder.
@@ -306,8 +313,8 @@ module Assembler::CodeBuilderBase
     end
     
     # Wrap all the built data into a nice package and return it.
-    { :bytes => @bytes, :link_directives => @link_direcives, :labels => @labels,
-      :line_info => @line_info }
+    { :bytes => @bytes, :link_directives => @link_directives,
+      :labels => @labels, :line_info => @line_info }
   end
 end
 

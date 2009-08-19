@@ -1,4 +1,4 @@
-require 'test/tem_test_case'
+require 'test/tem_test_case.rb'
 
 class TemCryptoAsymmetricTest < TemTestCase
   def i_crypt(data, key_id, authz, mode = :encrypt, direct_io = true, max_output = nil)

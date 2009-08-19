@@ -1,7 +1,9 @@
-require 'openssl'
+require 'tem_ruby'
+
 require 'test/unit'
 
-require 'tem_ruby'
+require 'openssl'
+
 
 class AbiBuilderTest < Test::Unit::TestCase
   class Wrapped

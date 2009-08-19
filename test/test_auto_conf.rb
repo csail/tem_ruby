@@ -1,5 +1,7 @@
 require 'tem_ruby'
+
 require 'test/unit'
+
 
 class AutoConfTest < Test::Unit::TestCase
   def test_autoconf_reconnect

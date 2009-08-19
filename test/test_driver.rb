@@ -1,4 +1,5 @@
-require 'test/tem_test_case'
+require 'test/tem_test_case.rb'
+
 
 class DriverTest < TemTestCase
   def test_buffers_io

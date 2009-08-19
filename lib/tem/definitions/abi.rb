@@ -1,3 +1,12 @@
+# The TEM's ABI (Abstract Binary Interface) definition.
+#
+# This code is the official specification, because Victor likes executable
+# specifications.
+#
+# Author:: Victor Costan
+# Copyright:: Copyright (C) 2007 Massachusetts Institute of Technology
+# License:: MIT
+
 require 'openssl'
 require 'digest/sha1'
 

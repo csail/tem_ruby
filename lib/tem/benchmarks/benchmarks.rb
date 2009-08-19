@@ -1,3 +1,9 @@
+# Master file for running the TEM benchmarks. 
+#
+# Author:: Victor Costan
+# Copyright:: Copyright (C) 2008 Massachusetts Institute of Technology
+# License:: MIT
+
 require 'tem_ruby'
 
 require 'tem/benchmarks/blank_bound_secpack.rb'
@@ -7,6 +13,7 @@ require 'tem/benchmarks/post_buffer.rb'
 require 'tem/benchmarks/simple_apdu.rb'
 require 'tem/benchmarks/vm_perf.rb'
 require 'tem/benchmarks/vm_perf_bound.rb'
+
 
 class Tem::Benchmarks
   def setup

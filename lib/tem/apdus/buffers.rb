@@ -1,23 +1,30 @@
+# TEM buffer management using the APDU API. 
+#
+# Author:: Victor Costan
+# Copyright:: Copyright (C) 2009 Massachusetts Institute of Technology
+# License:: MIT
+
 # :nodoc: namespace
 module Tem::Apdus
 
+
 module Buffers
   def alloc_buffer(length)
-    response = @transport.applet_apdu! :ins => 0x20,
+    response = @transport.iso_apdu! :ins => 0x20,
                                        :p12 => to_tem_short(length)
     return read_tem_byte(response, 0)
   end
   
   def release_buffer(buffer_id)
-    @transport.applet_apdu! :ins => 0x21, :p1 => buffer_id
+    @transport.iso_apdu! :ins => 0x21, :p1 => buffer_id
   end
 
   def flush_buffers
-    @transport.applet_apdu! :ins => 0x26
+    @transport.iso_apdu! :ins => 0x26
   end
   
   def get_buffer_length(buffer_id)
-    response = @transport.applet_apdu! :ins => 0x22, :p1 => buffer_id
+    response = @transport.iso_apdu! :ins => 0x22, :p1 => buffer_id
     return read_tem_short(response, 0)
   end
   
@@ -27,7 +34,7 @@ module Buffers
     buffer = []
     chunk_id = 0
     while true do
-      response = @transport.applet_apdu! :ins => 0x23, :p1 => buffer_id,
+      response = @transport.iso_apdu! :ins => 0x23, :p1 => buffer_id,
                                         :p2 => chunk_id
       buffer += response
       break if response.length != @buffer_chunk_size
@@ -42,7 +49,7 @@ module Buffers
     chunk_id, offset = 0, 0
     while offset < data.length do
       write_size = [data.length - offset, @buffer_chunk_size].min
-      @transport.applet_apdu! :ins => 0x24, :p1 => buffer_id, :p2 => chunk_id,
+      @transport.iso_apdu! :ins => 0x24, :p1 => buffer_id, :p2 => chunk_id,
                               :data => data[offset, write_size]
       chunk_id += 1
       offset += write_size
@@ -54,12 +61,12 @@ module Buffers
   end
   
   def guess_buffer_chunk_size!
-    response = @transport.applet_apdu! :ins => 0x25
+    response = @transport.iso_apdu! :ins => 0x25
     return read_tem_short(response, 0)
   end
   
   def stat_buffers
-    response = @transport.applet_apdu! :ins => 0x27
+    response = @transport.iso_apdu! :ins => 0x27
     
     memory_types = [:persistent, :clear_on_reset, :clear_on_deselect]
     stat = {:free => {}, :buffers => []}

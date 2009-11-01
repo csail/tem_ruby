@@ -25,6 +25,8 @@ require 'tem/apdus/keys.rb'
 require 'tem/apdus/lifecycle.rb'
 require 'tem/apdus/tag.rb'
 
+require 'tem/firmware/uploader.rb'
+
 require 'tem/ca.rb'
 require 'tem/ecert.rb'
 require 'tem/hive.rb'

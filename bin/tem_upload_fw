@@ -1,0 +1,31 @@
+#!/usr/bin/env ruby
+#
+# Uploads TEM firmware to a smartcard.
+#
+# Author:: Victor Costan
+# Copyright:: Copyright (C) 2009 Massachusetts Institute of Technology
+# License:: MIT
+
+require 'rubygems'
+require 'smartcard'
+require 'tem_ruby'
+require 'pp'
+
+transport = Smartcard::Iso::auto_transport
+print "Connected to smart-card using #{transport.inspect}\n"
+begin
+  Tem::Firmware::Uploader.upload_cap transport
+rescue Exception => e
+  print "Could not upload TEM firmware.\n"
+  print "#{e.class.name}: #{e}\n#{e.backtrace.join("\n")}\n"
+  exit
+end
+
+tem = Tem::Session.new transport
+begin
+  tem.activate
+  pp tem.emit
+rescue Exception => e
+  print "Could not activate and emit TEM. Firmware might be broken.\n"
+  print "#{e.class.name}: #{e}\n#{e.backtrace.join("\n")}\n"
+end

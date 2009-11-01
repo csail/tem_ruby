@@ -1,6 +1,11 @@
 #!/usr/bin/env ruby
+#
+# Stats the TEM's firmware version, buffers, and keys, and dumps them to stdout.
+#
+# Author:: Victor Costan
+# Copyright:: Copyright (C) 2007 Massachusetts Institute of Technology
+# License:: MIT
 
-# spews information about the TEM
 require 'rubygems'
 require 'tem_ruby'
 require 'pp'

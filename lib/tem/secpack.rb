@@ -102,7 +102,7 @@ class Tem::SecPack
       # offending instruction has been read, so assume offending_ip < ip.
       return info if addr >= info[0]
     end
-    return info.first
+    return @lines.first
   end
   
   def label_info_for_addr(addr)

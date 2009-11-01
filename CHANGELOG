@@ -1,3 +1,5 @@
+v0.11.7. Fixed edge case in SEClosure execution exception handling.
+
 v0.11.6. Firmware uploading logic, and the new tem_upload_fw binary.
 
 v0.11.5. ATR forwarding logic in tem_proxy, for smartcard API 0.4.2. 

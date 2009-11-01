@@ -1,4 +1,4 @@
-# raised when executing a SEC 
+# Raised when executing a SEC. 
 class Tem::SecExecError < StandardError
   attr_reader :line_info
   attr_reader :buffer_state, :key_state

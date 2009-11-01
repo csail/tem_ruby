@@ -29,6 +29,9 @@ class ServingLogic
     @serving.disconnect if @connected
     @connected = false
   end
+  def card_atr
+    @serving.card_atr
+  end
   def exchange_apdu(apdu)
     @logger.info "APDU request: #{apdu.map { |n| '%02x' % n }.join(' ')}"
     response = @serving.exchange_apdu apdu

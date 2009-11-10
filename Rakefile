@@ -3,7 +3,7 @@ gem 'echoe'
 require 'echoe'
 
 Echoe.new('tem_ruby') do |p|
-  p.project = 'tem' # rubyforge project
+  p.project = 'tem'  # rubyforge project
   p.docs_host = "costan@rubyforge.org:/var/www/gforge-projects/tem/rdoc/"
   
   p.author = 'Victor Costan'

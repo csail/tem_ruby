@@ -17,11 +17,17 @@ class UploaderTest < Test::Unit::TestCase
     assert_equal [0x19, 0x83, 0x12, 0x29, 0x10, 0xBA, 0xBE], Uploader.applet_aid
   end
   
+  def test_fw_version
+    assert_equal({:major => 1, :minor => 12}, Uploader.fw_version)
+  end
+  
   def test_upload
     transport = Smartcard::Iso.auto_transport
     Uploader.upload_cap transport
     
     tem = Tem::Session.new transport
+    assert_equal Uploader.fw_version, tem.fw_version,
+                 'TEM firmware was not updated to current version'
     assert tem.activate, "Activation failed (old TEM firmware was not replaced)"
   end
 end

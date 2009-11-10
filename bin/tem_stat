@@ -14,10 +14,10 @@ Tem.auto_conf
 
 print "Connected to TEM using #{$tem.transport.inspect}\n"
 begin
-	fw_ver = $tem.tk_firmware_ver
+	fw_ver = $tem.fw_version
 	print "TEM firmware version: #{fw_ver[:major]}.#{fw_ver[:minor]}\n"
 rescue Exception => e
-	print "Could not read TEM firmware version. Is the TEM emitted?\n"
+	print "Could not read TEM firmware version. Is the TEM firmware installed?\n"
 	print "#{e.class.name}: #{e}\n#{e.backtrace.join("\n")}\n"
 end
 

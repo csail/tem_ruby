@@ -2,6 +2,13 @@ require 'test/tem_test_case.rb'
 
 
 class DriverTest < TemTestCase
+  def test_version
+    version = @tem.fw_version
+    assert version[:major].kind_of?(Numeric) &&
+           version[:minor].kind_of?(Numeric),
+           'Firmware version has wrong format'
+  end
+  
   def test_buffers_io
     garbage = (1...569).map { |i| (i * i * 217 + i * 661 + 393) % 256 }
     
@@ -46,13 +53,12 @@ class DriverTest < TemTestCase
   def test_tag
     garbage = (1...569).map { |i| (i * i * 217 + i * 661 + 393) % 256 }
     
-    assert_raise(RuntimeError, 'tag returned before being set') { @tem.get_tag }
+    assert_raise Smartcard::Iso::ApduError, 'tag returned before being set' do
+      @tem.get_tag
+    end
     
-    @tem.set_tag(garbage)
-    assert_equal garbage, @tem.get_tag[2..-1], 'error in posted tag data'
-    
-    fwver = @tem.tk_firmware_ver
-    assert fwver[:major].kind_of?(Numeric) && fwver[:minor].kind_of?(Numeric), 'error in tag-backed firmware version'
+    @tem.set_tag garbage
+    assert_equal garbage, @tem.get_tag, 'error in posted tag data'    
   end
 
   def test_crypto

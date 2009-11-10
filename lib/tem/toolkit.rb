@@ -1,9 +1,4 @@
 module Tem::Toolkit
-  def tk_firmware_ver
-    tag = get_tag
-    return { :major => read_tem_ubyte(tag, 0), :minor => read_tem_ubyte(tag, 1) }
-  end
-  
   def tk_gen_key(type = :asymmetric, authz = nil)
     gen_sec = assemble do |s|
       s.ldbc authz.nil? ? 24 : 4

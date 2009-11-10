@@ -8,7 +8,7 @@ module Tem::ECert
   
   # Retrieves the TEM's Endorsement Certificate.
   def endorsement_cert
-    OpenSSL::X509::Certificate.new get_tag[2..-1].pack('C*')
+    OpenSSL::X509::Certificate.new get_tag.pack('C*')
   end
   
   # Retrieves the certificate of the TEM's Manfacturer (CA).

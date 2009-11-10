@@ -31,6 +31,19 @@ module Uploader
     @applet_aid = Smartcard::Gp::CapLoader.parse_applets(cap_data).first[:aid]
   end
   
+  @fw_version = nil
+  # The firmware version in the JavaCard applet.
+  #
+  # Returns a hash with the +:major+ and +:minor+ keys indicating the version
+  # numbers.
+  def self.fw_version
+    return @fw_version if @fw_version
+
+    cap_data = Smartcard::Gp::CapLoader.load_cap cap_file
+    @fw_version =
+       Smartcard::Gp::CapLoader.parse_header(cap_data)[:package][:version]
+  end
+  
   # Uploads the firmware CAP file, removing any old version.
   #
   # Note that uploading a new version wipes the firmware's data completely, so
@@ -41,9 +54,7 @@ module Uploader
       include Smartcard::Gp::GpCardMixin
     end
     transport.install_applet cap_file
-  end
-  
-  
+  end  
 end  # module Tem::Firmware::Uploader
 
 end  # namespace Tem::Firmware

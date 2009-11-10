@@ -2,11 +2,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{tem_ruby}
-  s.version = "0.11.7"
+  s.version = "0.12.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 1.2") if s.respond_to? :required_rubygems_version=
   s.authors = ["Victor Costan"]
-  s.date = %q{2009-11-01}
+  s.date = %q{2009-11-10}
   s.description = %q{TEM (Trusted Execution Module) driver, written in and for ruby.}
   s.email = %q{victor@costan.us}
   s.executables = ["tem_bench", "tem_ca", "tem_irb", "tem_proxy", "tem_stat", "tem_upload_fw"]
@@ -18,7 +18,7 @@ Gem::Specification.new do |s|
   s.rubyforge_project = %q{tem}
   s.rubygems_version = %q{1.3.5}
   s.summary = %q{TEM (Trusted Execution Module) driver, written in and for ruby.}
-  s.test_files = ["test/builders/test_abi_builder.rb", "test/firmware/test_uploader.rb", "test/tem_unit/test_tem_alu.rb", "test/tem_unit/test_tem_bound_secpack.rb", "test/tem_unit/test_tem_branching.rb", "test/tem_unit/test_tem_crypto_asymmetric.rb", "test/tem_unit/test_tem_crypto_hash.rb", "test/tem_unit/test_tem_crypto_pstore.rb", "test/tem_unit/test_tem_crypto_random.rb", "test/tem_unit/test_tem_emit.rb", "test/tem_unit/test_tem_memory.rb", "test/tem_unit/test_tem_memory_compare.rb", "test/tem_unit/test_tem_output.rb", "test/tem_unit/test_tem_yaml_secpack.rb", "test/test_auto_conf.rb", "test/test_driver.rb", "test/test_exceptions.rb"]
+  s.test_files = ["test/test_driver.rb", "test/firmware/test_uploader.rb", "test/test_auto_conf.rb", "test/builders/test_abi_builder.rb", "test/tem_unit/test_tem_emit.rb", "test/tem_unit/test_tem_crypto_asymmetric.rb", "test/tem_unit/test_tem_yaml_secpack.rb", "test/tem_unit/test_tem_alu.rb", "test/tem_unit/test_tem_crypto_hash.rb", "test/tem_unit/test_tem_bound_secpack.rb", "test/tem_unit/test_tem_memory_compare.rb", "test/tem_unit/test_tem_output.rb", "test/tem_unit/test_tem_crypto_random.rb", "test/tem_unit/test_tem_memory.rb", "test/tem_unit/test_tem_branching.rb", "test/tem_unit/test_tem_crypto_pstore.rb", "test/test_exceptions.rb"]
 
   if s.respond_to? :specification_version then
     current_version = Gem::Specification::CURRENT_SPECIFICATION_VERSION

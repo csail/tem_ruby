@@ -27,8 +27,8 @@ module Tag
     buffer_id = alloc_buffer length
     begin
       @transport.iso_apdu! :ins => 0x32, :p1 => buffer_id,
-                              :data => [to_tem_short(offset),
-                                        to_tem_short(length)].flatten
+                           :data => [to_tem_short(offset),
+                                     to_tem_short(length)].flatten
       tag_data = read_buffer buffer_id
     ensure
       release_buffer buffer_id

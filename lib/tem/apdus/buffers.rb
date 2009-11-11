@@ -75,9 +75,10 @@ module Buffers
     i = 0
     while offset < response.length do
       stat[:buffers][i] =
-        {:type => memory_types[read_tem_ubyte(response, offset) & 0x3f],
+        {:type => memory_types[read_tem_ubyte(response, offset) & 0x1F],
         :pinned => (read_tem_ubyte(response, offset) & 0x80) != 0,
         :free => (read_tem_ubyte(response, offset) & 0x40) == 0,
+        :public => (read_tem_ubyte(response, offset) & 0x20) != 0,
         :length => read_tem_ushort(response, offset + 1), 
         :xlength => read_tem_ushort(response, offset + 3)}
       offset += 5

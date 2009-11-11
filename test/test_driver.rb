@@ -45,6 +45,7 @@ class DriverTest < TemTestCase
       assert bstat[:buffers][b_ids[i]][:type].kind_of?(Symbol), "buffer stat does not show the memory type for a #{b_lengths[i]}-bytes buffer" 
       assert_equal b_lengths[i], bstat[:buffers][b_ids[i]][:length], "bad length in buffer stat entry for a #{b_lengths[i]}-bytes buffer" 
       assert_equal false, bstat[:buffers][b_ids[i]][:pinned], "bad pinned flag in buffer stat entry for a #{b_lengths[i]}-bytes buffer" 
+      assert_equal true, bstat[:buffers][b_ids[i]][:public], "bad public flag in buffer stat entry for a #{b_lengths[i]}-bytes buffer" 
     end
 
     b_ids.each { |bid| @tem.release_buffer(bid) }

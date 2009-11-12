@@ -27,7 +27,7 @@ module Tem::Abi
         [:p, :q, :dmp1, :dmq1, :iqmp], :signed => false, :big_endian => true
     abi.packed_variable_length_numbers :tem_pubrsa_numbers, :tem_ushort,
         [:e, :n], :signed => false, :big_endian => true
-    abi.fixed_length_string :tem_aes_key_string, 16    
+    abi.fixed_length_string :tem_3des_key_string, 16    
   end
   
   Tem::Builders::Crypto.define_crypto self do |crypto|
@@ -52,11 +52,11 @@ module Tem::Abi
       Tem::Keys::Asymmetric.new key
     }
     
-    crypto.symmetric_key :tem_aes_key, OpenSSL::Cipher::AES, 'ECB',
-                         :tem_aes_key_string
+    crypto.symmetric_key :tem_3des_key, OpenSSL::Cipher::DES, 'EDE-CBC',
+                         :tem_3des_key_string
     
     crypto.conditional_wrapper :tem_key, 1,
-        [{:tag => [0x99], :type => :tem_key,
+        [{:tag => [0x99], :type => :tem_3des_key,
           :class => Tem::Keys::Symmetric },
          {:tag => [0xAA], :type => :public_tem_rsa,
           :class => Tem::Keys::Asymmetric,

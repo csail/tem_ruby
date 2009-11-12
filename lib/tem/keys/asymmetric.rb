@@ -1,5 +1,12 @@
+# Ruby implementation of the TEM's asymmetric key operations.
+#
+# Author:: Victor Costan
+# Copyright:: Copyright (C) 2007 Massachusetts Institute of Technology
+# License:: MIT
+
 # :nodoc: namespace
 module Tem::Keys
+
 
 # Wraps a TEM asymmetric key, e.g. an RSA key.
 class Asymmetric < Tem::Key  
@@ -95,22 +102,22 @@ class Asymmetric < Tem::Key
     i = 0
     while i < data.length do
       block_size = (data.length - i < in_size) ? data.length - i : in_size
-      if data.kind_of? String
-        block = data[i...(i+block_size)]
-      else 
+      if data.respond_to? :pack
         block = data[i...(i+block_size)].pack('C*')
+      else 
+        block = data[i...(i+block_size)]
       end
       o_block = yield block
-      if data.kind_of? String
-        output += o_block
-      else
+      if data.respond_to? :pack
         output += o_block.unpack('C*')
+      else
+        output += o_block
       end
       i += block_size
     end
     return output
   end
   private :chug_data
-end
+end  # class Tem::Keys::Asymmetric
 
 end  # namespace Tem::Keys

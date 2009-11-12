@@ -4,7 +4,7 @@ module Tem::Toolkit
       s.ldbc authz.nil? ? 24 : 4
       s.outnew
       if authz.nil?
-        # no authorization given, must generate one
+        # No authorization given, must generate one.
         s.ldbc 20
         s.ldwc :key_auth
         s.dupn :n => 2
@@ -12,10 +12,12 @@ module Tem::Toolkit
         s.outvb
       end
       s.genkp :type => (type == :asymmetric) ? 0x00 : 0x80
-      s.authk :auth => :key_auth 
+      s.authk :auth => :key_auth
       s.outw
-      s.authk :auth => :key_auth 
-      s.outw
+      if type == :asymmetric
+        s.authk :auth => :key_auth 
+        s.outw
+      end
       s.halt
       s.label :key_auth
       if authz.nil?
@@ -28,14 +30,14 @@ module Tem::Toolkit
     
     kp_buffer = execute gen_sec
     keys_offset = authz.nil? ? 20 : 0
-    k1id = read_tem_ushort kp_buffer, keys_offset
-    k2id = read_tem_ushort kp_buffer, keys_offset + 2
+    k1id = read_tem_ushort kp_buffer, keys_offset    
+    k2id = read_tem_ushort kp_buffer, keys_offset + 2 if type == :asymmetric
     if type == :asymmetric 
       return_val = { :pubk_id => k1id, :privk_id => k2id }
     else
       return_val = { :key_id => k1id }
     end
-    return { :authz => authz.nil? ? kp_buffer[0...20] : authz }.merge!(return_val)
+    return { :authz => authz || kp_buffer[0...20] }.merge!(return_val)
   end
   
   def tk_read_key(key_id, authz)

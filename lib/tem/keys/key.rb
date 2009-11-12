@@ -1,3 +1,10 @@
+# Superclass for Ruby implementations of the TEM's key operations.
+#
+# Author:: Victor Costan
+# Copyright:: Copyright (C) 2009 Massachusetts Institute of Technology
+# License:: MIT
+
+
 # Base class for the TEM keys.
 #
 # This class consists of stubs describing the interface implemented by
@@ -39,10 +46,10 @@ class Tem::Key
   def self.new_from_ssl_key(ssl_key)
     if ssl_key.kind_of? OpenSSL::PKey::PKey
       Tem::Keys::Asymmetric.new ssl_key
-    elsif ssl_key.kind_of? OpenSSL::Cipher::Cipher
+    elsif ssl_key.kind_of? OpenSSL::Cipher or ssl_key.kind_of? String
       Tem::Keys::Symmetric.new ssl_key
     else
       raise "Can't handle keys of class #{ssl_key.class}"
     end
   end
-end
+end  # class Tem::Key

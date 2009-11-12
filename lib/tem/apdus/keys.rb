@@ -8,8 +8,9 @@
 module Tem::Apdus
   
 module Keys
-  def devchip_generate_key_pair
-    response = @transport.iso_apdu! :ins => 0x40
+  def devchip_generate_key_pair(symmetric_key = false)
+    response = @transport.iso_apdu! :ins => 0x40,
+                                    :p1 => (symmetric_key ? 0x80 : 0x00)
     return { :privkey_id => read_tem_byte(response, 0),
              :pubkey_id => read_tem_byte(response, 1) }    
   end

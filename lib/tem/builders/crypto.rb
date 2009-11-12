@@ -67,12 +67,12 @@ class Crypto < Abi
         :read => lambda { |k| Tem::Keys::Symmetric.new k },
         :to => lambda { |k| k.ssl_key },
         :new => lambda { |klass|
-      k = cipher_class cipher_name
+      k = cipher_class.new cipher_name
       
       unless k.respond_to? :key
         # Some ciphers don't give back the key that they receive.
         # We need to synthesize that.
-        class << k
+        class <<k
           def key=(new_key)
             super
             @_key = new_key
@@ -82,6 +82,7 @@ class Crypto < Abi
           end
         end
       end
+      k
     }
   end
   

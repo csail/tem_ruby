@@ -109,6 +109,7 @@ class Tem::SecPack
     @labels.to_a.reverse_each do |info|
       return info.reverse if addr >= info[1]
     end
+    return [0, :__start]
   end
   
   # Methods for interacting with the plaintext content of a SECpack.

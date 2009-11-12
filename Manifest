@@ -48,7 +48,6 @@ lib/tem/secpack.rb
 lib/tem/tem.rb
 lib/tem/toolkit.rb
 lib/tem_ruby.rb
-tem_ruby.gemspec
 test/_test_cert.rb
 test/builders/test_abi_builder.rb
 test/firmware/test_uploader.rb
@@ -56,8 +55,8 @@ test/tem_test_case.rb
 test/tem_unit/test_tem_alu.rb
 test/tem_unit/test_tem_bound_secpack.rb
 test/tem_unit/test_tem_branching.rb
-test/tem_unit/test_tem_crypto_asymmetric.rb
 test/tem_unit/test_tem_crypto_hash.rb
+test/tem_unit/test_tem_crypto_keys.rb
 test/tem_unit/test_tem_crypto_pstore.rb
 test/tem_unit/test_tem_crypto_random.rb
 test/tem_unit/test_tem_emit.rb
@@ -66,5 +65,6 @@ test/tem_unit/test_tem_memory_compare.rb
 test/tem_unit/test_tem_output.rb
 test/tem_unit/test_tem_yaml_secpack.rb
 test/test_auto_conf.rb
+test/test_crypto_engine.rb
 test/test_driver.rb
 test/test_exceptions.rb

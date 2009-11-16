@@ -11,6 +11,6 @@
 # :nodoc:
 class Tem::Benchmarks
   def time_simple_apdu
-    do_timing { @tem.get_tag_length }
+    do_timing { @tem.fw_version }
   end
 end

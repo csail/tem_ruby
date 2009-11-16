@@ -9,20 +9,27 @@
 
 # :nodoc:
 class Tem::Benchmarks
-  def time_blank_bound_secpack
-    secpack = @tem.assemble { |s|
-      s.ldbc 0
-      s.outnew
-      s.halt
-      s.label :secret
-      s.zeros :tem_ubyte, 50
-      s.label :plain
-      s.zeros :tem_ubyte, 220
-      s.stack 1
-    }
+  def time_blank_bound_secpack_rsa
+    secpack = blank_seclosure
     secpack.bind @tem.pubek, :secret, :plain
-
-    print "SECpack has #{secpack.body.length} bytes, runs 3 instructions and produces 0 bytes\n"
+    print "RSA-bound SECpack has #{secpack.body.length} bytes, " +
+          "executes #{blank_seclosure_opcount} instructions and produces " +
+          "#{blank_seclosure_outcount} bytes\n"
     do_timing { @tem.execute secpack }
   end
+  
+  def time_blank_bound_secpack_3des
+    key = Tem::Keys::Symmetric.generate
+    authz = [1] * 20
+    key_id = @tem.tk_post_key key, authz
+    
+    secpack = blank_seclosure
+    secpack.bind key, :secret, :plain
+    print "3DES-bound SECpack has #{secpack.body.length} bytes, " +
+          "executes #{blank_seclosure_opcount} instructions and produces " +
+          "#{blank_seclosure_outcount} bytes\n"
+    do_timing { @tem.execute secpack, key_id }
+
+    @tem.tk_delete_key key_id, authz
+  end  
 end

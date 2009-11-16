@@ -13,16 +13,35 @@
 
 # :nodoc:
 class Tem::Benchmarks
-  def time_blank_sec
-    secpack = @tem.assemble { |s|
+  # The SEClosure used in the blank benchmark.
+  def blank_seclosure
+    @tem.assemble { |s|
       s.ldbc 0
       s.outnew
       s.halt
-      s.zeros :tem_ubyte, 70
+      s.label :secret
+      s.zeros :tem_ubyte, 50
+      s.label :plain
+      s.zeros :tem_ubyte, 220
       s.stack 1
     }
-
-    print "SECpack has #{secpack.body.length} bytes, runs 3 instructions and produces 0 bytes\n"
+  end
+  
+  # Number of opcodes executed by the blank SEClosure.
+  def blank_seclosure_opcount
+    3
+  end
+  
+  # Number of bytes output by the blank SEClosure.
+  def blank_seclosure_outcount
+    0
+  end
+  
+  def time_blank_sec
+    secpack = blank_seclosure
+    print "SECpack has #{secpack.body.length} bytes, " +
+          "executes #{blank_seclosure_opcount} instructions and produces " +
+          "#{blank_seclosure_outcount} bytes\n"
     do_timing { @tem.execute secpack }
   end
 end

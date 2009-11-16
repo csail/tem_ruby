@@ -10,8 +10,9 @@
 
 # :nodoc:
 class Tem::Benchmarks
-  def time_vm_perf
-    secpack = @tem.assemble { |s|
+  # The SEClosure used in the vm_perf benchmark.
+  def vm_perf_seclosure
+    @tem.assemble { |s|
       s.ldwc 48 * 10
       s.outnew
 
@@ -145,7 +146,23 @@ class Tem::Benchmarks
       s.label :stack
       s.stack 12
     }
-    print "SECpack has #{secpack.body.length} bytes, runs 1020 instructions and produces 470 bytes\n"
+  end
+  
+  # Number of opcodes executed by the vm_perf SEClosure.
+  def vm_perf_seclosure_opcount
+    1020
+  end
+  
+  # Number of bytes output by the vm_perf SEClosure.
+  def vm_perf_seclosure_outcount
+    470
+  end
+  
+  def time_vm_perf
+    secpack = vm_perf_seclosure
+    print "SECpack has #{secpack.body.length} bytes, " +
+          "executes #{vm_perf_seclosure_opcount} instructions and produces " +
+          "#{vm_perf_seclosure_outcount} bytes\n"
     do_timing { @tem.execute secpack }
-  end  
+  end
 end

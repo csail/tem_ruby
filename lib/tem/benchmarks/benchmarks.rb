@@ -16,6 +16,8 @@ require 'tem/benchmarks/vm_perf_bound.rb'
 
 
 class Tem::Benchmarks
+  attr_reader :timing
+  
   def setup
     @tem = Tem.auto_tem
     
@@ -43,13 +45,19 @@ class Tem::Benchmarks
       end
       avg_time = timings.inject { |a,v| a + v } / timings.length
       max_diff = timings.map { |t| (t - avg_time).abs }.max
-      uncertainty = 100 * max_diff / avg_time
+      uncertainty = max_diff / avg_time
       print "%8d: %3.8fs per run, %3.8fs uncertainty (%2.5f%%)\n" %
           [n, avg_time / n, max_diff / n, 100 * uncertainty]
       
-      return avg_time / n unless max_diff / avg_time >= 0.01
-      n *= 2
+      if max_diff / avg_time >= 0.01
+        n *= 2
+        next
+      end
+      
+      @timing = avg_time / n
+      break
     end
+    @timing
   end
   
   def self.all_benchmarks
@@ -58,7 +66,8 @@ class Tem::Benchmarks
     t.setup
     t.methods.select { |m| m =~ /time_/ }.each do |m|
       print "Timing: #{m[5..-1]}...\n"
-      benchmarks[m] = t.send m.to_sym
+      t.send m.to_sym
+      benchmarks[m] = t.timing
     end
     t.teardown
     benchmarks

@@ -190,13 +190,16 @@ module Tem::Isa
     isa.instruction 0x46, :halt
     # 1 ST -> 0 ST
     isa.instruction 0x47, :psrm
-    
+
+    # 2 ST -> 1 ST
+    isa.instruction 0x58, :ldkel
     # 1 ST -> 1 ST
-    isa.instruction 0x5A, :rdk     
+    isa.instruction 0x5A, :rdk
     # 1 ST -> 0 ST
     isa.instruction 0x5C, :relk
-    
+    # 1 ST -> 1 ST
     isa.instruction 0x5D, :ldkl
+    
     # 1 IM_B -> 2 ST
     isa.instruction 0x5E, :genkp, {:name => :type, :type => :tem_ubyte }
     # 1 ST, 1 IM -> 1 ST

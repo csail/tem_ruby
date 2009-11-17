@@ -18,7 +18,7 @@ class UploaderTest < Test::Unit::TestCase
   end
   
   def test_fw_version
-    assert_equal({:major => 1, :minor => 14}, Uploader.fw_version)
+    assert_equal({:major => 1, :minor => 15}, Uploader.fw_version)
   end
   
   def test_upload

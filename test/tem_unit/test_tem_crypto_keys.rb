@@ -1,35 +1,48 @@
 require 'test/tem_test_case.rb'
 
 class TemCryptoKeysTest < TemTestCase
+  def i_crypt_len(data_length, key_id, authz)
+    ex_sec = @tem.assemble { |s|
+      s.ldbc :const => 2
+      s.outnew
+      s.ldbc :const => key_id
+      s.authk :auth => :key_auth
+      s.ldwc :const => data_length
+      s.ldkel
+      s.outw
+      s.halt
+      s.label :key_auth
+      s.data :tem_ubyte, authz
+      s.stack 6
+    }
+    Tem::Abi.read_tem_short @tem.execute(ex_sec), 0
+  end
+  
   def i_crypt(data, key_id, authz, mode = :encrypt, direct_io = true,
               symmetric = false)
-    if symmetric
-      max_output = case mode
-      when :encrypt
-        ((data.length + 8) / 8) * 8
-      when :decrypt
-        data.length
-      when :sign
-        8
-      end
-    else
-      max_output = case mode
-      when :encrypt
-        ((data.length + 239) / 240) * 256
-      when :decrypt
-        data.length
-      when :sign
-        256
-      end
+    max_output = case mode
+    when :encrypt
+      (data.length + 239) / 240 * 256
+    when :decrypt
+      data.length
+    when :sign
+      256
     end
     
     crypt_opcode =
         {:encrypt => :kefxb, :decrypt => :kdfxb, :sign => :ksfxb}[mode]
     ex_sec = @tem.assemble { |s|
-      s.ldwc :const => max_output
-      s.outnew
       s.ldbc :const => key_id
       s.authk :auth => :key_auth
+      if mode == :encrypt  # Use ldkel to get the max_output value.
+        s.dupn :n => 1
+        s.ldwc :const => data.length
+        s.ldkel        
+      else
+        s.ldwc :const => max_output
+      end
+      s.outnew
+      
       s.send crypt_opcode, :from => :data, :size => data.length,
                            :to => (direct_io ? 0xFFFF : :outdata) 
       s.outvlb :from => :outdata unless direct_io
@@ -45,7 +58,7 @@ class TemCryptoKeysTest < TemTestCase
       end
       s.stack 5
     }
-    return @tem.execute(ex_sec)
+    @tem.execute ex_sec
   end
   
   def i_verify(data, signature, key_id, authz)
@@ -66,11 +79,16 @@ class TemCryptoKeysTest < TemTestCase
       s.data :tem_ubyte, signature
       s.stack 5
     }
-    return @tem.execute(sign_sec)[0] == 1
+    @tem.execute(sign_sec)[0] == 1
   end
   
   def i_test_crypto_pks_ops(pubk_id, privk_id, pubk, privk, authz)
     garbage = (0...569).map { |i| (i * i * 217 + i * 661 + 393) % 256 }
+
+    # Obtaining the length of encrypted data.
+    crypt_length = i_crypt_len garbage.length, pubk_id, authz
+    assert_equal((garbage.length + 239) / 240 * 256, crypt_length,
+                 'Incorrect result from ldkel')
 
     # SEC/priv-sign + CPU/pub-verify, direct IO.
     signed_garbage = i_crypt garbage, privk_id, authz, :sign, true
@@ -133,6 +151,11 @@ class TemCryptoKeysTest < TemTestCase
   
   def i_test_crypto_sks_ops(skey_id, skey, authz)
     garbage = (0...569).map { |i| (i * i * 217 + i * 661 + 393) % 256 }
+
+    # Obtaining the length of encrypted data.
+    crypt_length = i_crypt_len garbage.length, skey_id, authz
+    assert_equal((garbage.length + 8) / 8 * 8, crypt_length,
+                 'Incorrect result from ldkel')
 
     # SEC/sign + CPU/verify, direct IO.
     signed_garbage = i_crypt garbage, skey_id, authz, :sign, true, true

@@ -64,7 +64,7 @@ class Tem::Benchmarks
     benchmarks = {}
     t = Tem::Benchmarks.new
     t.setup
-    t.methods.select { |m| m =~ /time_/ }.each do |m|
+    t.methods.select { |m| m =~ /time_/ }.sort.each do |m|
       print "Timing: #{m[5..-1]}...\n"
       t.send m.to_sym
       benchmarks[m] = t.timing

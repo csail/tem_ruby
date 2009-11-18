@@ -1,3 +1,5 @@
+v0.15.2. Bugfix: migrating a SECpack blew up the original.
+
 v0.15.1. SECpack migrations.
 
 v0.15.0. Opcode for computing the size of encrypted data (fw 1.15).

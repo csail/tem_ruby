@@ -17,7 +17,7 @@ class Tem::SecPack
   
   # Creates a deep copy of the SECpack.
   def copy
-    Tem::SecPack.new_from_array self.to_array
+    Tem::SecPack.new_from_yaml_str self.to_yaml_str
   end
 
   def to_array

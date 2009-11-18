@@ -27,6 +27,9 @@ require 'tem/apdus/tag.rb'
 
 require 'tem/firmware/uploader.rb'
 
+require 'tem/admin/emit.rb'
+require 'tem/admin/migrate.rb'
+
 require 'tem/ca.rb'
 require 'tem/ecert.rb'
 require 'tem/hive.rb'

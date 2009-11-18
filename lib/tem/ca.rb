@@ -4,7 +4,7 @@ require 'yaml'
 # Certificate Authority (CA) functionality for TEM manufacturers
 module Tem::CA
   # Creates an Endorsement Certificate for a TEM's Public Endorsement Key.
-  def new_ecert(pubek)
+  def self.new_ecert(pubek)
     ca_cert = Tem::CA.ca_cert
     ca_key = Tem::CA.ca_key
     conf = Tem::CA.config

@@ -49,16 +49,5 @@ class DriverTest < TemTestCase
     end
 
     b_ids.each { |bid| @tem.release_buffer(bid) }
-  end
-  
-  def test_tag
-    garbage = (1...569).map { |i| (i * i * 217 + i * 661 + 393) % 256 }
-    
-    assert_raise Smartcard::Iso::ApduError, 'tag returned before being set' do
-      @tem.get_tag
-    end
-    
-    @tem.set_tag garbage
-    assert_equal garbage, @tem.get_tag, 'error in posted tag data'    
-  end
+  end  
 end

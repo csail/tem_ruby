@@ -14,6 +14,8 @@ dev_ca/ca_cert.pem
 dev_ca/ca_key.pem
 dev_ca/config.yml
 lib/tem/_cert.rb
+lib/tem/admin/emit.rb
+lib/tem/admin/migrate.rb
 lib/tem/apdus/buffers.rb
 lib/tem/apdus/keys.rb
 lib/tem/apdus/lifecycle.rb
@@ -62,9 +64,11 @@ test/tem_unit/test_tem_crypto_random.rb
 test/tem_unit/test_tem_emit.rb
 test/tem_unit/test_tem_memory.rb
 test/tem_unit/test_tem_memory_compare.rb
+test/tem_unit/test_tem_migrate.rb
 test/tem_unit/test_tem_output.rb
 test/tem_unit/test_tem_yaml_secpack.rb
 test/test_auto_conf.rb
 test/test_crypto_engine.rb
 test/test_driver.rb
 test/test_exceptions.rb
+test/test_tag.rb

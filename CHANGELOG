@@ -1,4 +1,6 @@
-v0.15.9. Opcode for computing the size of encrypted data (fw 1.15).
+v0.15.1. SECpack migrations.
+
+v0.15.0. Opcode for computing the size of encrypted data (fw 1.15).
 
 v0.14.1. Benchmarks for symmetric encryption.
 

@@ -2,7 +2,7 @@ require 'yaml'
 
 class Tem::SecPack
   @@serialized_ivars = [:body, :labels, :ep, :sp, :extra_bytes, :signed_bytes,
-                        :encrypted_bytes, :bound, :lines]    
+                        :secret_bytes, :bound, :lines]    
  
   def self.new_from_array(array)
     arg_hash = { }
@@ -14,6 +14,11 @@ class Tem::SecPack
     array = YAML.load yaml_str
     new_from_array array
   end
+  
+  # Creates a deep copy of the SECpack.
+  def copy
+    Tem::SecPack.new_from_array self.to_array
+  end
 
   def to_array
     @@serialized_ivars.map { |m| self.instance_variable_get :"@#{m}" }
@@ -23,7 +28,13 @@ class Tem::SecPack
     self.to_array.to_yaml.to_s
   end
   
-  attr_reader :body, :bound
+  # The size of the secret data in the SECpack.
+  attr_reader :secret_bytes
+  # The SECpack's body.
+  attr_reader :body
+  # The size of the encrypted data, if the SECpack is bound. False otherwise.
+  attr_reader :bound
+  # Debugging information.
   attr_reader :lines
   
   def trim_extra_bytes
@@ -51,37 +62,100 @@ class Tem::SecPack
   def label_address(label_name)
     @labels[label_name.to_sym]
   end
+  
+  def bind(public_key, secret_from = :secret, plain_from = :plain)
+    raise "SECpack is already bound" if @bound
     
-  def bind(public_key, encrypt_from = 0, plaintext_from = 0)
     expand_extra_bytes
-    encrypt_from = @labels[encrypt_from.to_sym] unless encrypt_from.kind_of? Numeric
-    plaintext_from = @labels[plaintext_from.to_sym] unless plaintext_from.kind_of? Numeric
+    unless secret_from.kind_of? Numeric
+      secret_from_label = secret_from
+      secret_from = @labels[secret_from.to_sym]
+      raise "Undefined label #{secret_from_label}" unless secret_from
+    end
+    unless plain_from.kind_of? Numeric
+      plain_from_label = plain_from
+      plain_from = @labels[plain_from.to_sym]
+      raise "Undefined label #{plain_from_label}" unless plain_from      
+    end
     
-    @signed_bytes = encrypt_from
-    @encrypted_bytes = plaintext_from - encrypt_from
-    
-    secpack_sig = Tem::Abi.tem_hash [tem_header, @body[0...plaintext_from]].flatten
-    crypt = public_key.encrypt [@body[encrypt_from...plaintext_from], secpack_sig].flatten
-    @body = [@body[0...encrypt_from], crypt, @body[plaintext_from..-1]].flatten
+    @signed_bytes = secret_from
+    @secret_bytes = plain_from - secret_from
+
+    secpack_sig = Tem::Abi.tem_hash tem_header + @body[0, plain_from]
+    crypt = public_key.encrypt @body[secret_from, @secret_bytes] + secpack_sig
+    @body = [@body[0, secret_from], crypt, @body[plain_from..-1]].flatten
       
-    label_delta = crypt.length - @encrypted_bytes         
-    @labels = Hash[*(@labels.map { |k, v|
-      if v < encrypt_from
-        [k, v] 
-      elsif v < plaintext_from
-        []
-      else
-        [k, v + label_delta]
-      end
-    }.flatten)]
+    label_delta = crypt.length - @secret_bytes
+    relocate_labels secret_from, plain_from, label_delta
     
     #trim_extra_bytes
-    @bound = true
+    @bound = crypt.length
+  end
+
+  def fake_bind(secret_from = :secret, plain_from = :plain)
+    raise "SECpack is already bound" if @bound
+    
+    expand_extra_bytes
+    unless secret_from.kind_of? Numeric
+      secret_from_label = secret_from
+      secret_from = @labels[secret_from.to_sym]
+      raise "Undefined label #{secret_from_label}" unless secret_from
+    end
+    unless plain_from.kind_of? Numeric
+      plain_from_label = plain_from
+      plain_from = @labels[plain_from.to_sym]
+      raise "Undefined label #{plain_from_label}" unless plain_from      
+    end
+    
+    @signed_bytes = secret_from
+    @secret_bytes = plain_from - secret_from
+    
+    #trim_extra_bytes
+    @bound = @secret_bytes    
+  end
+  
+  # Relocates the labels to reflect a change in the size of encrypted bytes.
+  #
+  # Args:
+  #   same_until:: the end of the signed area (no relocations done there)
+  #   delete_until:: the end of the old encrypted area (labels are removed)
+  #   delta:: the size difference between the new and the old encrypted areas
+  def relocate_labels(same_until, delete_until, delta)
+    @labels = Hash[*(@labels.map { |k, v|
+      if v <= same_until
+        [k, v] 
+      elsif v < delete_until
+        []
+      else
+        [k, v + delta]
+      end
+    }.flatten)]    
+  end
+    
+  # The encrypted data in a SECpack.
+  #
+  # This is useful for SECpack migration -- the encrypted bytes are the only
+  # part that has to be migrated.
+  def encrypted_data
+    @body[@signed_bytes, @bound]
+  end
+  
+  # Replaces the encrypted bytes in a SECpack.
+  #
+  # This is used in SECpack migration -- the encryption bytes are the only part
+  # that changes during migration.
+  def encrypted_data=(new_encrypted_bytes)
+    raise "SECpack is not bound. See #bind and #fake_bind." unless @bound
+    
+    @body[@signed_bytes, @bound] = new_encrypted_bytes
+    relocate_labels @signed_bytes, @signed_bytes + @bound, 
+                    new_encrypted_bytes.length - @bound 
+    @bound = new_encrypted_bytes.length
   end
   
   def tem_header
     # TODO: use 0x0100 (no tracing) depending on options
-    hh = [0x0101, @signed_bytes || 0, @encrypted_bytes || 0, @extra_bytes, @sp,
+    hh = [0x0101, @signed_bytes || 0, @secret_bytes || 0, @extra_bytes, @sp,
           @ep].map { |n| Tem::Abi.to_tem_ushort n }.flatten
     hh += Array.new((Tem::Abi.tem_hash [0]).length - hh.length, 0)
     return hh

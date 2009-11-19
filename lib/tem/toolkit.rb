@@ -59,24 +59,6 @@ module Tem::Toolkit
     return read_tem_key(key_string, 0)
   end
   
-  def tk_delete_key(key_id, authz)
-    del_sec = assemble do |s|
-      s.ldbc :const => key_id
-      s.authk :auth => :key_auth
-      s.relk
-      s.ldbc :const => 1
-      s.outnew
-      s.ldbc :const => key_id
-      s.outb
-      s.halt
-      s.label :key_auth
-      s.data :tem_ubyte, authz
-      s.stack 4
-    end
-    
-    execute del_sec
-  end
-  
   def tk_post_key(key, authz)
     post_sec = assemble do |s|
       s.ldbc :const => 1

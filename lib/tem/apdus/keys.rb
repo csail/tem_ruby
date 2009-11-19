@@ -15,13 +15,16 @@ module Keys
              :pubkey_id => read_tem_byte(response, 1) }    
   end
   
-  def devchip_release_key(key_id)
-    @transport.iso_apdu! :ins => 0x41, :p1 => key_id
+  # NOTE: this is the only method that is not devchip-only. It needs to be in
+  #       the production driver to prevent from DOSing the TEM by filling its
+  #       key store.
+  def release_key(key_id)
+    @transport.iso_apdu! :ins => 0x28, :p1 => key_id
     return true
   end
   
   def devchip_save_key(key_id)
-    response = @transport.iso_apdu! :ins => 0x43, :p1 => key_id
+    response = @transport.iso_apdu! :ins => 0x42, :p1 => key_id
     buffer_id = read_tem_byte response, 0 
     buffer_length = read_tem_short response, 1
     key_buffer = read_buffer buffer_id
@@ -47,10 +50,10 @@ module Keys
     return data_buffer[0, buffer_length]
   end
   def devchip_encrypt(data, key_id)
-    devchip_encrypt_decrypt data, key_id, 0x44
+    devchip_encrypt_decrypt data, key_id, 0x43
   end
   def devchip_decrypt(data, key_id)
-    devchip_encrypt_decrypt data, key_id, 0x45
+    devchip_encrypt_decrypt data, key_id, 0x44
   end
   
   def stat_keys

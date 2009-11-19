@@ -30,7 +30,7 @@ class CryptoEngineTest < TemTestCase
                     'Key stat reports wrong size for private key.'
     
     [:pubkey_id, :privkey_id].each do |key|
-      @tem.devchip_release_key key_pair[key]
+      @tem.release_key key_pair[key]
     end
   end
   
@@ -59,7 +59,7 @@ class CryptoEngineTest < TemTestCase
     assert_equal 128, key_stat[:keys][key_pair[:privkey_id]][:bits],
                  'Key stat reports wrong size for symmetric key.'
     
-    @tem.devchip_release_key key_pair[:privkey_id]
+    @tem.release_key key_pair[:privkey_id]
   end
   
   def test_crypto_abi

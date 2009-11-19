@@ -30,6 +30,6 @@ class Tem::Benchmarks
           "#{blank_seclosure_outcount} bytes\n"
     do_timing { @tem.execute secpack, key_id }
 
-    @tem.tk_delete_key key_id, authz
+    @tem.release_key key_id
   end  
 end

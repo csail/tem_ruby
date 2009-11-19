@@ -27,7 +27,7 @@ class Tem::Benchmarks
     encrypted_data = key.encrypt data
     print "3DES-encrypted blob has #{encrypted_data.length} bytes\n"
     do_timing { @tem.devchip_decrypt encrypted_data, key_id }
-    @tem.tk_delete_key key_id, authz
+    @tem.release_key key_id
   end
 
   def time_devchip_decrypt_3des_long
@@ -38,6 +38,6 @@ class Tem::Benchmarks
     encrypted_data = key.encrypt data
     print "3DES-encrypted blob has #{encrypted_data.length} bytes\n"
     do_timing { @tem.devchip_decrypt encrypted_data, key_id }
-    @tem.tk_delete_key key_id, authz
+    @tem.release_key key_id
   end
 end

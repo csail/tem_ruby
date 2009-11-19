@@ -38,7 +38,7 @@ class TemMigrateTest < TemTestCase
     privk_id = @tem.tk_post_key privk, authz
     assert_equal _migrate_test_secret, @tem.execute(migrated, privk_id),
                  'Migrated SECpack executed incorrectly'
-    @tem.tk_delete_key privk_id, authz
+    @tem.release_key privk_id
 
     assert_equal _migrate_test_secret, @tem.execute(sec),
                  'Migration blew up original SECpack'

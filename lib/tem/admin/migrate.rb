@@ -12,6 +12,42 @@ module Tem::Admin
 
 # Logic for migrating SECpacks.
 module Migrate
+  # SEClosure that loads a symmetric key exclusively for SECpack execution.
+  #
+  # Args:
+  #   key_bytes:: the key to be loaded in the TEM, serialized in TEM format
+  def self.skey_load_seclosure(key_bytes)
+    Tem::Assembler.assemble { |s|      
+      s.ldwc :const => :key
+      s.rdk
+      s.ldwc :const => Tem::Abi.tem_hash_length
+      s.ldwc :const => :authz
+      s.rnd
+      s.authk :auth => :authz
+      s.ldbc :const => 1
+      s.outnew
+      s.outb
+      s.halt
+      
+      s.label :secret
+      s.label :key
+      s.data :tem_ubyte, key_bytes
+      s.label :plain
+      s.label :authz
+      s.zeros :tem_hash, 1
+      s.stack 8
+    }
+  end
+  
+  # Blank version of the SEClosure that loads a symmetric key for execution.
+  #
+  # The returned SEClosure is not suitable for execution. Its encrypted bytes
+  # should be replaced with the bytes from a SECpack generated with live data.
+  def self.blank_skey_load_seclosure
+    skey_load_seclosure [0] * (Tem::Abi.tem_3des_key_string_length + 1)
+  end  
+  
+  
   # SEClosure that verifies the destination TEM's ECert.
   #
   # Args:
@@ -146,13 +182,19 @@ module Migrate
   
   # The key storing the encrypted bytes of the ecert_verify SECpack in the
   # TEM's tag.
-  def self.ecert_verify_bytes_tag_key
+  def self.skey_load_tag_key
     0x11
+  end
+
+  # The key storing the encrypted bytes of the ecert_verify SECpack in the
+  # TEM's tag.
+  def self.ecert_verify_bytes_tag_key
+    0x12
   end
   
   # The key storing the encrypted bytes of the migrate SECpack in the TEM's tag.
   def self.migrate_bytes_tag_key
-    0x12
+    0x13
   end
   
   # Data to be included in a TEM's tag to support migration.
@@ -160,15 +202,20 @@ module Migrate
   # Returns a hash of tag key-values to be included in the TEM's tag during
   # emission.
   def self.tag_data(pubek, privek_authz)
+    skey = Tem::Keys::Symmetric.generate
+    ld_sec = skey_load_seclosure skey.to_tem_key
+    ld_sec.bind pubek
+    
     ps_addr = OpenSSL::Random.random_bytes(Tem::Abi.tem_ps_addr_length).
         unpack('C*')
     ev_sec = ecert_verify_seclosure ps_addr, privek_authz
-    ev_sec.bind pubek
+    ev_sec.bind skey
     
     m_sec = migrate_seclosure ps_addr, privek_authz
-    m_sec.bind pubek
+    m_sec.bind skey
     
     {
+      skey_load_tag_key => ld_sec.encrypted_data,
       ecert_verify_bytes_tag_key => ev_sec.encrypted_data,
       migrate_bytes_tag_key => m_sec.encrypted_data
     }
@@ -178,6 +225,10 @@ module Migrate
   def self.seclosures_from_tag_data(tem)
     tag_data = tem.tag
     
+    skey_load = blank_skey_load_seclosure
+    skey_load.fake_bind
+    skey_load.encrypted_data = tag_data[skey_load_tag_key]
+    
     ecert_verify = blank_ecert_verify_seclosure
     ecert_verify.fake_bind
     ecert_verify.encrypted_data = tag_data[ecert_verify_bytes_tag_key]
@@ -186,7 +237,8 @@ module Migrate
     migrate.fake_bind
     migrate.encrypted_data = tag_data[migrate_bytes_tag_key]
     
-    { :ecert_verify => ecert_verify, :migrate => migrate }
+    { :skey_load => skey_load, :ecert_verify => ecert_verify,
+      :migrate => migrate }
   end
   
   # Migrates a SECpack to another TEM.
@@ -200,18 +252,23 @@ module Migrate
   def migrate(secpack, ecert)
     migrated = secpack.copy
     secpacks = Tem::Admin::Migrate.seclosures_from_tag_data self
+
+    skey_ld = secpacks[:skey_load]
+    skey_id = Tem::Abi.read_tem_ubyte execute(skey_ld), 0
     
     verify = secpacks[:ecert_verify]
     verify.set_bytes :pubek,
                      Tem::Key.new_from_ssl_key(ecert.public_key).to_tem_key
-    return nil if execute(verify) != [1]
+    return nil if execute(verify, skey_id) != [1]
     
     migrate = secpacks[:migrate]
     migrate.set_value :secpack_secret_size, :tem_short, secpack.secret_bytes +
                       Tem::Abi.tem_hash_length
     migrate.set_bytes :secpack_encrypted, migrated.encrypted_data
-    return nil unless new_encrypted_data = execute(migrate)
+    return nil unless new_encrypted_data = execute(migrate, skey_id)
     migrated.encrypted_data = new_encrypted_data
+    
+    release_key skey_id    
     migrated
   end
 end  # module Tem::Admin::Migrate

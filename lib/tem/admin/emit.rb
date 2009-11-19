@@ -69,7 +69,7 @@ module Emit
     privek_auth = r[0...20]
     pubek_auth = (0...20).map {|i| 0}
     pubek = tem.tk_read_key 1, pubek_auth
-    tem.tk_delete_key 1, pubek_auth
+    tem.release_key 1
     { :privek_auth => privek_auth, :pubek => pubek }
   end
   

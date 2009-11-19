@@ -22,7 +22,8 @@ module Tem::Isa
     isa.instruction 0x13, :div
     # 2 ST -> 1 ST
     isa.instruction 0x14, :mod
-    # 2 ST -> 1 ST 
+    
+    # 2 ST -> 0 ST 
     isa.instruction 0x1E, :rnd
     
   

@@ -1,4 +1,10 @@
 #!/usr/bin/env ruby
+#
+# Runs the TEM hardware benchmarks.
+#
+# Author:: Victor Costan
+# Copyright:: Copyright (C) 2009 Massachusetts Institute of Technology
+# License:: MIT
 
 # benchmarks a TEM
 require 'rubygems'

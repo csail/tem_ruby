@@ -1,7 +1,7 @@
 require 'test/tem_test_case.rb'
 
 
-class ExceptionsTest < TemTestCase
+class ExceptionTest < TemTestCase
   def test_trace
     # test the exception handling mechanism
     bad_sec = @tem.assemble { |s|

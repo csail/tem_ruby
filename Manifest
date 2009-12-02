@@ -51,8 +51,15 @@ lib/tem/tem.rb
 lib/tem/toolkit.rb
 lib/tem_ruby.rb
 test/_test_cert.rb
-test/builders/test_abi_builder.rb
-test/firmware/test_uploader.rb
+test/apdus/buffers_test.rb
+test/apdus/tag_test.rb
+test/apdus/version_test.rb
+test/auto_conf_test.rb
+test/builders/abi_builder_test.rb
+test/builders/isa_builder_test.rb
+test/crypto_engine_test.rb
+test/exception_test.rb
+test/firmware/uploader_test.rb
 test/tem_test_case.rb
 test/tem_unit/test_tem_alu.rb
 test/tem_unit/test_tem_bound_secpack.rb
@@ -67,8 +74,3 @@ test/tem_unit/test_tem_memory_compare.rb
 test/tem_unit/test_tem_migrate.rb
 test/tem_unit/test_tem_output.rb
 test/tem_unit/test_tem_yaml_secpack.rb
-test/test_auto_conf.rb
-test/test_crypto_engine.rb
-test/test_driver.rb
-test/test_exceptions.rb
-test/test_tag.rb

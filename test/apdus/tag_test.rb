@@ -1,7 +1,7 @@
 require 'test/tem_test_case.rb'
 
 
-class DriverTest < TemTestCase
+class TagTest < TemTestCase
   def test_tag_reading_before_writing
     assert_raise Smartcard::Iso::ApduError,
                  'Tag length returned before being set' do

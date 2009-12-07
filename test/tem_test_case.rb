@@ -19,9 +19,9 @@ class TemTestCase < Test::Unit::TestCase
   def teardown
     @tem.disconnect if defined?(@tem) && @tem
   end
-  
-  def test_smoke
-    # All the required files have been parsed successfully.
-    assert true
+
+  def default_test
+    # NOTE: Without this, test/unit will complain that the class does not have
+    #       test cases.
   end
 end

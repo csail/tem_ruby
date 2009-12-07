@@ -51,7 +51,7 @@ class Isa
   #              target address - cell address + value of relative;
   #              (optional, default value is false)
   # The following methods are defined for a type named 'name':
-  #   * encode_name(*arguments) -> Hash
+  #   * emit_name(*arguments) -> Hash
   def instruction(opcode, name, *iargs)
     encoded_opcode = @abi.send :"to_#{@opcode_type}", opcode
     abi = @abi  # Capture the ABI in the method closures.

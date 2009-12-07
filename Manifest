@@ -56,7 +56,9 @@ test/apdus/tag_test.rb
 test/apdus/version_test.rb
 test/auto_conf_test.rb
 test/builders/abi_builder_test.rb
+test/builders/abi_fixture.rb
 test/builders/isa_builder_test.rb
+test/builders/isa_fixture.rb
 test/crypto_engine_test.rb
 test/exception_test.rb
 test/firmware/uploader_test.rb
